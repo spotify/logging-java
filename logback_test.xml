@@ -1,0 +1,32 @@
+<configuration>
+    <property name="ident" value="example" scope="context" />
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %property{ident}[%property{pid}]: [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <target>System.err</target>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <appender name="trace" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %property{ident}[%property{pid}]: [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <target>System.err</target>
+
+        <filter class="com.spotify.logging.logback.LevelRangeFilter">
+            <levelMin>TRACE</levelMin>
+            <levelMax>INFO</levelMax>
+        </filter>
+    </appender>
+
+    <!--<root level="trace">-->
+    <root level="all">
+        <appender-ref ref="console"/>
+        <appender-ref ref="trace"/>
+    </root>
+</configuration>
