@@ -16,6 +16,7 @@
 
 package com.spotify.logging;
 
+import com.google.common.base.Charsets;
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 
 import net.kencochrane.raven.logback.SentryAppender;
@@ -241,6 +242,7 @@ public class LoggingConfigurator {
     encoder.setContext(context);
     encoder.setPattern(
         "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: %msg%n");
+    encoder.setCharset(Charsets.UTF_8);
     encoder.start();
 
     // Setup stderr appender
@@ -279,12 +281,13 @@ public class LoggingConfigurator {
         getenv("SPOTIFY_SYSLOG_PORT") != null ? Integer.valueOf(getenv("SPOTIFY_SYSLOG_PORT")) :
         514;
 
-    final SyslogAppender appender = new MillisecondPrecisionSyslogAppender();
+    final MillisecondPrecisionSyslogAppender appender = new MillisecondPrecisionSyslogAppender();
 
     appender.setFacility("LOCAL0");
     appender.setSyslogHost(h);
     appender.setPort(p);
     appender.setName("syslog");
+    appender.setCharset(Charsets.UTF_8);
     appender.setContext(context);
     appender.setSuffixPattern(
         "%property{ident}[%property{pid}]: %-5level [%thread] %logger{0} - %msg");

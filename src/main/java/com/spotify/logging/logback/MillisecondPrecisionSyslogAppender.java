@@ -18,6 +18,8 @@ package com.spotify.logging.logback;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.net.SyslogAppender;
@@ -26,22 +28,51 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
+import ch.qos.logback.core.net.SyslogAppenderBase;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Throwables;
 
 /**
  * A {@link SyslogAppender} with millisecond timestamp precision.
  */
 public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
-
+  private Charset charset = Charsets.UTF_8;
   PatternLayout stackTraceLayout = new PatternLayout();
+  private OutputStream sos;
 
-
+  @Override
   public void start() {
     super.start();
+    sos = getSyslogOutputStream();
     setupStackTraceLayout();
   }
 
   String getPrefixPattern() {
     return "%syslogStart{" + getFacility() + "}%nopex{}";
+  }
+
+  @Override
+  protected void append(ILoggingEvent eventObject) {
+    // code based on ch.qos.logback.core.net.SyslogAppenderBase.append()
+    if (!isStarted()) {
+      return;
+    }
+
+    try {
+      String msg = getLayout().doLayout(eventObject);
+      if(msg == null) {
+        return;
+      }
+      if (msg.length() > getMaxMessageSize()) {
+        msg = msg.substring(0, getMaxMessageSize());
+      }
+      sos.write(msg.getBytes(charset));
+      sos.flush();
+      postProcess(eventObject, sos);
+    } catch (IOException ioe) {
+      addError("Failed to send diagram to " + getSyslogHost(), ioe);
+    }
   }
 
   @Override
@@ -112,5 +143,31 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
     stackTraceLayout.setPattern(getPrefixPattern() + getStackTracePattern());
     stackTraceLayout.setContext(getContext());
     stackTraceLayout.start();
+  }
+
+  // Horrible hack to access the syslog stream through reflection
+  private OutputStream getSyslogOutputStream() {
+    Field f;
+    try {
+      f = SyslogAppenderBase.class.getDeclaredField("sos");
+      f.setAccessible(true);
+      return (OutputStream) f.get(this);
+    } catch (ReflectiveOperationException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return the charset used for encoding the output
+   */
+  public Charset getCharset() {
+    return charset;
+  }
+
+  /**
+   * @param charset the charset to use for encoding the output
+   */
+  public void setCharset(Charset charset) {
+    this.charset = charset;
   }
 }

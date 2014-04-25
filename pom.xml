@@ -60,6 +60,11 @@
       <version>1.0.13</version>
     </dependency>
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>17.0</version>
+    </dependency>
+    <dependency>
       <groupId>com.intellij</groupId>
       <artifactId>annotations</artifactId>
       <version>9.0.4</version>
