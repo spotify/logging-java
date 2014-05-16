@@ -37,8 +37,7 @@ public class LoggingSupport {
    * Format of log idents are defined in identities.py in the log-parser git project.
    */
   public static class Ident {
-
-    public static final String NULL_IDENT = "[]";
+    public static final Ident EMPTY_IDENT = new Ident(0);
 
     private final String ident;
 
@@ -92,8 +91,7 @@ public class LoggingSupport {
    * @param version Version of the log message. This is incremented by callers and in messages.py if
    *                the format of a given log message type is changed.
    * @param ident   Ident object to give information generally about a client who made the request
-   *                that resulted in this message. May be null, in which case the ident field in the
-   *                log message will be "[]".
+   *                that resulted in this message.
    * @param args    Additional arguments that will be converted to strings, escaped, and appended
    *                (tab-separated) after the log message type and version number.
    */
@@ -142,7 +140,7 @@ public class LoggingSupport {
     line.append(LoggingSupport.rid.getAndIncrement()).append(' ');
 
     if (ident == null) {
-      line.append(Ident.NULL_IDENT);
+      line.append(Ident.EMPTY_IDENT);
     } else {
       line.append(ident);
     }

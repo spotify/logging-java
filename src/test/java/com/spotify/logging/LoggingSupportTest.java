@@ -35,15 +35,15 @@ public class LoggingSupportTest {
 
   @Test
   public void doLogBasic() {
-    LoggingSupport.info(logger, "FooLog", 2, null);
+    LoggingSupport.info(logger, "FooLog", 2, LoggingSupport.Ident.EMPTY_IDENT);
     verify(logger).info("0 [] FooLog\t2");
   }
 
   @Test
   public void doLogRidIncrements() {
-    LoggingSupport.info(logger, "FooLog", 2, null);
+    LoggingSupport.info(logger, "FooLog", 2, LoggingSupport.Ident.EMPTY_IDENT);
     verify(logger).info("0 [] FooLog\t2");
-    LoggingSupport.info(logger, "FooLog", 2, null);
+    LoggingSupport.info(logger, "FooLog", 2, LoggingSupport.Ident.EMPTY_IDENT);
     verify(logger).info("1 [] FooLog\t2");
   }
 
