@@ -287,9 +287,9 @@ public class LoggingConfigurator {
     appender.setName("syslog");
     appender.setContext(context);
     appender.setSuffixPattern(
-        "%property{ident}[%property{pid}]: %-5level [%thread] %logger{0} - %msg");
+        "%property{ident}[%property{pid}]: %msg");
     appender.setStackTracePattern(
-        "%property{ident}[%property{pid}]: %-5level [%thread] %logger{0} - " + CoreConstants.TAB);
+        "%property{ident}[%property{pid}]: " + CoreConstants.TAB);
     appender.start();
 
     return appender;
