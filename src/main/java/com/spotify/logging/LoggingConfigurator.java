@@ -17,6 +17,7 @@
 package com.spotify.logging;
 
 import com.google.common.base.Charsets;
+
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 
 import net.kencochrane.raven.logback.SentryAppender;
@@ -31,7 +32,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.filter.ThresholdFilter;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.ConsoleAppender;
@@ -40,6 +40,7 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
 import static ch.qos.logback.classic.Level.OFF;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.getenv;
 
 /**
@@ -150,7 +151,10 @@ public class LoggingConfigurator {
    * @param level logging level to use.
    */
   public static void configureSyslogDefaults(final String ident, final Level level) {
-    configureSyslogDefaults(ident, level, null, -1);
+    final String syslogHost = getenv("SPOTIFY_SYSLOG_HOST");
+    final String port = getenv("SPOTIFY_SYSLOG_PORT");
+    final int syslogPort = port == null ? -1 : Integer.valueOf(port);
+    configureSyslogDefaults(ident, level, syslogHost, syslogPort);
   }
 
   /**
@@ -258,10 +262,7 @@ public class LoggingConfigurator {
 
   /**
    * Create a syslog appender. The appender will use the facility local0. If host is null or an
-   * empty string, we will use the value in the SPOTIFY_SYSLOG_HOST environment variable if it is
-   * set, otherwise we will use "localhost". Similarly, we will use the specified port if it is
-   * greater than 0, otherwise we will use the SPOTIFY_SYSLOG_PORT environment variable if it is
-   * set, otherwise we will use port 514.
+   * empty string, default to "localhost". If port is less than 0, default to 514.
    *
    * @param context The logger context to use.
    * @param host The host running the syslog daemon.
@@ -271,15 +272,8 @@ public class LoggingConfigurator {
   static Appender<ILoggingEvent> getSyslogAppender(final LoggerContext context,
                                                            final String host,
                                                            final int port) {
-    final String h =
-        host != null && host.length() > 0 ? host :
-        getenv("SPOTIFY_SYSLOG_HOST") != null ? getenv("SPOTIFY_SYSLOG_HOST") :
-        "localhost";
-
-    final Integer p =
-        port > 0 ? port :
-        getenv("SPOTIFY_SYSLOG_PORT") != null ? Integer.valueOf(getenv("SPOTIFY_SYSLOG_PORT")) :
-        514;
+    final String h = isNullOrEmpty(host) ? "localhost" : host;
+    final int p = port < 0 ? 514 : port;
 
     final MillisecondPrecisionSyslogAppender appender = new MillisecondPrecisionSyslogAppender();
 
@@ -329,9 +323,24 @@ public class LoggingConfigurator {
     context.putProperty("pid", getMyPid());
     context.putProperty("ident", opts.ident());
 
+    // See if syslog host was specified via command line or environment variable.
+    // The command line value takes precedence, which defaults to an empty string.
+    String syslogHost = opts.syslogHost();
+    if (isNullOrEmpty(syslogHost)) {
+      syslogHost = getenv("SPOTIFY_SYSLOG_HOST");
+    }
+
+    // See if syslog port was specified via command line or environment variable.
+    // The command line value takes precedence, which defaults to -1.
+    int syslogPort = opts.syslogPort();
+    if (syslogPort < 0) {
+      final String port = getenv("SPOTIFY_SYSLOG_PORT");
+      syslogPort = port == null ? -1 : Integer.valueOf(getenv("SPOTIFY_SYSLOG_PORT"));
+    }
+
     // Setup syslog logging
-    if (opts.syslog() || opts.syslogHost().length() > 0|| opts.syslogPort() > 0) {
-      rootLogger.addAppender(getSyslogAppender(context, opts.syslogHost(), opts.syslogPort()));
+    if (opts.syslog() || syslogHost != null || syslogPort > 0) {
+      rootLogger.addAppender(getSyslogAppender(context, syslogHost, syslogPort));
     } else {
       rootLogger.addAppender(getStdErrAppender(context));
     }
