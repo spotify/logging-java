@@ -40,13 +40,15 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 
 import static ch.qos.logback.classic.Level.OFF;
+import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.getenv;
 
 /**
  * Base configurator of logback for spotify services/tools. LoggingConfigurator.configureDefaults()
  * should generally be called as soon as possible on start-up. The configured logging backend is
- * logback.
+ * logback. If the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT environment variable is defined,
+ * configureDefaults() will use the syslog appender, otherwise it will use the console appender.
  *
  * <p> One aspect of the logging is that we setup a general uncaught exception handler to log
  * uncaught exceptions at info level, if syslog is chosen as logging backend.
@@ -94,14 +96,18 @@ public class LoggingConfigurator {
 
   /**
    * Configure logging with default behaviour and log to stderr. Uses the {@link #DEFAULT_IDENT}
-   * logging identity. Uses INFO logging level.
+   * logging identity. Uses INFO logging level. If the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT
+   * environment variable is defined, the syslog appender will be used, otherwise console appender
+   * will be.
    */
   public static void configureDefaults() {
     configureDefaults(DEFAULT_IDENT);
   }
 
   /**
-   * Configure logging with default behaviour and log to stderr using INFO logging level.
+   * Configure logging with default behaviour and log to stderr using INFO logging level. If the
+   * SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT environment variable is defined, the syslog
+   * appender will be used, otherwise console appender will be.
    *
    * @param ident The logging identity.
    */
@@ -110,12 +116,24 @@ public class LoggingConfigurator {
   }
 
   /**
-   * Configure logging with default behaviour and log to stderr.
+   * Configure logging with default behaviour and log to stderr. If the SPOTIFY_SYSLOG_HOST or
+   * SPOTIFY_SYSLOG_PORT environment variable is defined, the syslog appender will be used,
+   * otherwise console appender will be.
    *
    * @param ident The logging identity.
    * @param level logging level to use.
    */
   public static void configureDefaults(final String ident, final Level level) {
+    // Call configureSyslogDefaults if the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT env var is
+    // set. If this causes a problem, we could introduce a configureConsoleDefaults method which
+    // users could call instead to avoid this behavior.
+    final String syslogHost = getSyslogHost();
+    final int syslogPort = getSyslogPort();
+    if (syslogHost != null || syslogPort != -1) {
+      configureSyslogDefaults(ident, level, syslogHost, syslogPort);
+      return;
+    }
+
     final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     // Setup context
@@ -327,15 +345,14 @@ public class LoggingConfigurator {
     // The command line value takes precedence, which defaults to an empty string.
     String syslogHost = opts.syslogHost();
     if (isNullOrEmpty(syslogHost)) {
-      syslogHost = getenv("SPOTIFY_SYSLOG_HOST");
+      syslogHost = getSyslogHost();
     }
 
     // See if syslog port was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to -1.
     int syslogPort = opts.syslogPort();
     if (syslogPort < 0) {
-      final String port = getenv("SPOTIFY_SYSLOG_PORT");
-      syslogPort = port == null ? -1 : Integer.valueOf(getenv("SPOTIFY_SYSLOG_PORT"));
+      syslogPort = getSyslogPort();
     }
 
     // Setup syslog logging
@@ -424,6 +441,15 @@ public class LoggingConfigurator {
       // Fall through.
     }
     return pid;
+  }
+
+  private static String getSyslogHost() {
+    return emptyToNull(getenv("SPOTIFY_SYSLOG_HOST"));
+  }
+
+  private static int getSyslogPort() {
+    final String port = getenv("SPOTIFY_SYSLOG_PORT");
+    return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
   }
 
 }
