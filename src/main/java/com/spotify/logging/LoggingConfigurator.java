@@ -222,17 +222,19 @@ public class LoggingConfigurator {
   /**
    * Add a sentry appender for error log event.
    * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
+   * @return the configured sentry appender.
    */
-  public static void addSentryAppender(final String dsn) {
-    addSentryAppender(dsn, Level.ERROR);
+  public static SentryAppender addSentryAppender(final String dsn) {
+    return addSentryAppender(dsn, Level.ERROR);
   }
 
   /**
    * Add a sentry appender.
    * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
    * @param logLevelThreshold the threshold for log events to be sent to sentry.
+   * @return the configured sentry appender.
    */
-  public static void addSentryAppender(final String dsn, Level logLevelThreshold) {
+  public static SentryAppender addSentryAppender(final String dsn, Level logLevelThreshold) {
     final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     final LoggerContext context = rootLogger.getLoggerContext();
@@ -249,6 +251,8 @@ public class LoggingConfigurator {
     appender.start();
 
     rootLogger.addAppender(appender);
+
+    return appender;
   }
 
   /**
