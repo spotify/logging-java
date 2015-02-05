@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+  <Appenders>
+    <MillisecondPrecisionSyslog name="Syslog" ident="example"/>
+  </Appenders>
+
+  <Loggers>
+    <AsyncRoot level="debug">
+      <AppenderRef ref="Syslog"/>
+    </AsyncRoot>
+  </Loggers>
+
+</Configuration>

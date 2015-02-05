@@ -69,13 +69,24 @@ public class CommandLineArgumentExample {
     }
   }
 
-  /**
-   * Helpers for running the example above with the test logging config file.
-   */
   public static class InfoExampleRunner {
 
     public static void main(final String... args) {
       CommandLineArgumentExample.main("--info", "--ident=example");
+    }
+  }
+
+  public static class WarnExampleRunner {
+
+    public static void main(final String... args) {
+      CommandLineArgumentExample.main("--warn", "--ident=example");
+    }
+  }
+
+  public static class SyslogExampleRunner {
+
+    public static void main(final String... args) {
+      CommandLineArgumentExample.main("--syslog", "--ident=example");
     }
   }
 

@@ -70,22 +70,22 @@ public class ConfigFileExample {
   }
 
   /**
-   * Helper for running the example above with the test logging config file.
+   * Demonstrates using a custom log4j2 configuration file.
    */
   public static class ExampleRunner {
 
     public static void main(final String... args) {
-      ConfigFileExample.main("--logconfig", "logback_test.xml");
+      ConfigFileExample.main("--logconfig", "log4j2-test.xml");
     }
   }
 
   /**
-   * Helper for running the example above with the custom syslog logging config file.
+   * Demonstrates high performance async logging using a custom log4j2 configuration file.
    */
-  public static class CustomSyslogExampleRunner {
+  public static class AsyncSyslogExampleRunner {
 
     public static void main(final String... args) {
-      ConfigFileExample.main("--logconfig", "logback_custom_syslog.xml");
+      ConfigFileExample.main("--logconfig", "log4j2-async-syslog.xml");
     }
   }
 }

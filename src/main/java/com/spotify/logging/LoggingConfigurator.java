@@ -16,33 +16,27 @@
 
 package com.spotify.logging;
 
-import com.google.common.base.Charsets;
+import net.kencochrane.raven.log4j2.SentryAppender;
 
-import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
-
-import net.kencochrane.raven.logback.SentryAppender;
-
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.SyslogAppender;
+import org.apache.logging.log4j.core.config.AbstractConfiguration;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.classic.filter.ThresholdFilter;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
-import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
-
-import static ch.qos.logback.classic.Level.OFF;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.getenv;
+import static org.apache.logging.log4j.Level.ALL;
+import static org.apache.logging.log4j.core.appender.ConsoleAppender.Target.SYSTEM_ERR;
 
 /**
  * Base configurator of logback for spotify services/tools. LoggingConfigurator.configureDefaults()
@@ -60,18 +54,18 @@ public class LoggingConfigurator {
   public static final String DEFAULT_IDENT = "java";
 
   public enum Level {
-    OFF(ch.qos.logback.classic.Level.OFF),
-    ERROR(ch.qos.logback.classic.Level.ERROR),
-    WARN(ch.qos.logback.classic.Level.WARN),
-    INFO(ch.qos.logback.classic.Level.INFO),
-    DEBUG(ch.qos.logback.classic.Level.DEBUG),
-    TRACE(ch.qos.logback.classic.Level.TRACE),
-    ALL(ch.qos.logback.classic.Level.ALL);
+    OFF(org.apache.logging.log4j.Level.OFF),
+    ERROR(org.apache.logging.log4j.Level.ERROR),
+    WARN(org.apache.logging.log4j.Level.WARN),
+    INFO(org.apache.logging.log4j.Level.INFO),
+    DEBUG(org.apache.logging.log4j.Level.DEBUG),
+    TRACE(org.apache.logging.log4j.Level.TRACE),
+    ALL(org.apache.logging.log4j.Level.ALL);
 
-    final ch.qos.logback.classic.Level logbackLevel;
+    final org.apache.logging.log4j.Level level;
 
-    Level(ch.qos.logback.classic.Level logbackLevel) {
-      this.logbackLevel = logbackLevel;
+    Level(org.apache.logging.log4j.Level level) {
+      this.level = level;
     }
   }
 
@@ -79,19 +73,7 @@ public class LoggingConfigurator {
    * Mute all logging.
    */
   public static void configureNoLogging() {
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-    final LoggerContext context = rootLogger.getLoggerContext();
-
-    // Clear context, removing all appenders
-    context.reset();
-
-    // Set logging level to OFF
-    for (final Logger logger : context.getLoggerList()) {
-      if (logger != rootLogger) {
-        logger.setLevel(null);
-      }
-    }
-    rootLogger.setLevel(OFF);
+    reconfigure(Level.OFF, null);
   }
 
   /**
@@ -127,31 +109,15 @@ public class LoggingConfigurator {
     // Call configureSyslogDefaults if the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT env var is
     // set. If this causes a problem, we could introduce a configureConsoleDefaults method which
     // users could call instead to avoid this behavior.
-    final String syslogHost = getSyslogHost();
-    final int syslogPort = getSyslogPort();
+    final String syslogHost = syslogHost();
+    final int syslogPort = syslogPort();
     if (syslogHost != null || syslogPort != -1) {
       configureSyslogDefaults(ident, level, syslogHost, syslogPort);
       return;
     }
 
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
-    // Setup context
-    final LoggerContext context = rootLogger.getLoggerContext();
-    context.reset();
-    context.putProperty("ident", ident);
-    context.putProperty("pid", getMyPid());
-
-    // Setup stderr output
-    rootLogger.addAppender(getStdErrAppender(context));
-
-    // Setup logging level
-    rootLogger.setLevel(level.logbackLevel);
-
-    // Log uncaught exceptions
-    UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
+    reconfigure(level, stdErrAppender(ident));
   }
-
 
   /**
    * Configure logging with default behavior and log to syslog using INFO logging level.
@@ -180,47 +146,18 @@ public class LoggingConfigurator {
    *
    * @param ident Syslog ident to use.
    * @param level logging level to use.
-   * @param host Hostname or IP address of syslog host.
-   * @param port Port to connect to syslog on.
+   * @param host  Hostname or IP address of syslog host.
+   * @param port  Port to connect to syslog on.
    */
   public static void configureSyslogDefaults(final String ident, final Level level,
                                              final String host, final int port) {
-    configureSyslogDefaults(ident, level, host, port, Logger.ROOT_LOGGER_NAME);
-  }
-
-  /**
-   * Configure logging with default behavior and log to syslog.
-   *
-   * @param ident Syslog ident to use.
-   * @param level logging level to use.
-   * @param host Hostname or IP address of syslog host.
-   * @param port Port to connect to syslog on.
-   * @param loggerName Name of the logger to which the syslog appender will be added
-   */
-  public static void configureSyslogDefaults(final String ident, final Level level,
-                                             final String host, final int port,
-                                             final String loggerName) {
-    final Logger logger = (Logger) LoggerFactory.getLogger(loggerName);
-
-    // Setup context
-    final LoggerContext context = logger.getLoggerContext();
-    context.reset();
-    context.putProperty("ident", ident);
-    context.putProperty("pid", getMyPid());
-
-    // Setup syslog output
-    logger.addAppender(getSyslogAppender(context, host, port));
-
-    // Setup logging level
-    logger.setLevel(level.logbackLevel);
-
-    // Log uncaught exceptions
-    UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
+    reconfigure(level, syslogAppender(host, port, ident));
   }
 
 
   /**
    * Add a sentry appender for error log event.
+   *
    * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
    * @return the configured sentry appender.
    */
@@ -230,53 +167,43 @@ public class LoggingConfigurator {
 
   /**
    * Add a sentry appender.
-   * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
-   * @param logLevelThreshold the threshold for log events to be sent to sentry.
+   *
+   * @param dsn       the sentry dsn to use (as produced by the sentry webinterface).
+   * @param threshold the threshold for log events to be sent to sentry.
    * @return the configured sentry appender.
    */
-  public static SentryAppender addSentryAppender(final String dsn, Level logLevelThreshold) {
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
-    final LoggerContext context = rootLogger.getLoggerContext();
-
+  public static SentryAppender addSentryAppender(final String dsn, Level threshold) {
     SentryAppender appender = new SentryAppender();
     appender.setDsn(dsn);
-
-    appender.setContext(context);
-    ThresholdFilter levelFilter = new ThresholdFilter();
-    levelFilter.setLevel(logLevelThreshold.logbackLevel.toString());
-    levelFilter.start();
-    appender.addFilter(levelFilter);
-
     appender.start();
 
-    rootLogger.addAppender(appender);
+    final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    final AbstractConfiguration cfg = (AbstractConfiguration) ctx.getConfiguration();
+
+    cfg.addAppender(appender);
+    cfg.getRootLogger().addAppender(appender, threshold.level, null);
 
     return appender;
   }
 
   /**
    * Create a stderr appender.
-   *
-   * @param context The logger context to use.
-   * @return An appender writing to stderr.
    */
-  private static Appender<ILoggingEvent> getStdErrAppender(final LoggerContext context) {
+  private static Appender stdErrAppender(final String ident) {
 
     // Setup format
-    final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-    encoder.setContext(context);
-    encoder.setPattern(
-        "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: %msg%n");
-    encoder.setCharset(Charsets.UTF_8);
-    encoder.start();
+    final Layout<String> layout = PatternLayout.newBuilder()
+        .withCharset(Charset.forName("UTF-8"))
+        .withPattern("%d{HH:mm:ss.SSS} " + ident + "[" + Util.pid() + "]: " +
+                     "%-5level [%thread] %logger{0}: %msg%n")
+        .build();
 
-    // Setup stderr appender
-    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
-    appender.setTarget("System.err");
-    appender.setName("stderr");
-    appender.setEncoder(encoder);
-    appender.setContext(context);
+    final Appender appender = ConsoleAppender.newBuilder()
+        .setLayout(layout)
+        .setName("stderr")
+        .setTarget(SYSTEM_ERR)
+        .build();
+
     appender.start();
 
     return appender;
@@ -285,38 +212,22 @@ public class LoggingConfigurator {
   /**
    * Create a syslog appender. The appender will use the facility local0. If host is null or an
    * empty string, default to "localhost". If port is less than 0, default to 514.
-   *
-   * @param context The logger context to use.
-   * @param host The host running the syslog daemon.
-   * @param port The port to connect to.
-   * @return An appender that writes to syslog.
    */
-  static Appender<ILoggingEvent> getSyslogAppender(final LoggerContext context,
-                                                           final String host,
-                                                           final int port) {
+  static Appender syslogAppender(final String host, final int port, final String ident) {
     final String h = isNullOrEmpty(host) ? "localhost" : host;
-    final int p = port < 0 ? 514 : port;
+    final int p = port <= 0 ? 514 : port;
 
-    final MillisecondPrecisionSyslogAppender appender = new MillisecondPrecisionSyslogAppender();
+    final SyslogAppender appender = MillisecondPrecisionSyslogAppender.create(
+        "syslog", h, p, ident);
 
-    appender.setFacility("LOCAL0");
-    appender.setSyslogHost(h);
-    appender.setPort(p);
-    appender.setName("syslog");
-    appender.setCharset(Charsets.UTF_8);
-    appender.setContext(context);
-    appender.setSuffixPattern(
-        "%property{ident}[%property{pid}]: %msg");
-    appender.setStackTracePattern(
-        "%property{ident}[%property{pid}]: " + CoreConstants.TAB);
     appender.start();
 
     return appender;
   }
 
   /**
-   * This is not a public interface and only here to be called from JewelCliLoggingConfigurator. All
-   * JewelCli specific functionality should be moved to JewelCliLoggingConfigurator, but that
+   * This is not a public interface and only here to be called from JewelCliLoggingConfigurator.
+   * All JewelCli specific functionality should be moved to JewelCliLoggingConfigurator, but that
    * requires some work in defining an interface for *it* to use to configure this cmdline/config
    * format agnostic class.
    *
@@ -328,63 +239,51 @@ public class LoggingConfigurator {
    * @deprecated Don't use, see docs.
    */
   static void configure(final JewelCliLoggingOptions opts) {
-    // Use logback config file to setup logging if specified, discarding any other logging options.
+    // Use config file to setup logging if specified, discarding any other logging options.
     if (!opts.logFileName().isEmpty()) {
       configure(new File(opts.logFileName()), opts.ident());
       return;
     }
 
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
-    // Log uncaught exceptions
-    UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
-
-    // Setup context
-    final LoggerContext context = rootLogger.getLoggerContext();
-    context.reset();
-    context.putProperty("pid", getMyPid());
-    context.putProperty("ident", opts.ident());
-
     // See if syslog host was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to an empty string.
     String syslogHost = opts.syslogHost();
     if (isNullOrEmpty(syslogHost)) {
-      syslogHost = getSyslogHost();
+      syslogHost = syslogHost();
     }
 
     // See if syslog port was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to -1.
     int syslogPort = opts.syslogPort();
     if (syslogPort < 0) {
-      syslogPort = getSyslogPort();
+      syslogPort = syslogPort();
     }
 
-    // Setup syslog logging
+    final Appender appender;
     if (opts.syslog() || syslogHost != null || syslogPort > 0) {
-      rootLogger.addAppender(getSyslogAppender(context, syslogHost, syslogPort));
+      appender = syslogAppender(syslogHost, syslogPort, opts.ident());
     } else {
-      rootLogger.addAppender(getStdErrAppender(context));
+      appender = stdErrAppender(opts.ident());
     }
 
-    // Setup default logging level
-    rootLogger.setLevel(Level.INFO.logbackLevel);
+    final Level level;
 
     // Setup logging levels
     if (opts.error()) {
-      rootLogger.setLevel(Level.ERROR.logbackLevel);
+      level = Level.ERROR;
+    } else if (opts.warn()) {
+      level = Level.WARN;
+    } else if (opts.info()) {
+      level = Level.INFO;
+    } else if (opts.debug()) {
+      level = Level.DEBUG;
+    } else if (opts.trace()) {
+      level = Level.TRACE;
+    } else {
+      level = Level.INFO;
     }
-    if (opts.warn()) {
-      rootLogger.setLevel(Level.WARN.logbackLevel);
-    }
-    if (opts.info()) {
-      rootLogger.setLevel(Level.INFO.logbackLevel);
-    }
-    if (opts.debug()) {
-      rootLogger.setLevel(Level.DEBUG.logbackLevel);
-    }
-    if (opts.trace()) {
-      rootLogger.setLevel(Level.TRACE.logbackLevel);
-    }
+
+    reconfigure(level, appender);
   }
 
   /**
@@ -403,57 +302,92 @@ public class LoggingConfigurator {
    * @param defaultIdent Fallback logging identity, used if not specified in config file.
    */
   public static void configure(final File file, final String defaultIdent) {
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
-    // Setup context
-    final LoggerContext context = rootLogger.getLoggerContext();
-    context.reset();
+    final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    final Configuration cfg = ctx.getConfiguration();
 
     // Log uncaught exceptions
     UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
 
     // Load logging configuration from file
-    try {
-      final JoranConfigurator configurator = new JoranConfigurator();
-      configurator.setContext(context);
-      configurator.doConfigure(file);
-    } catch (JoranException je) {
-      // StatusPrinter will handle this
-    }
+    ctx.setConfigLocation(file.toURI());
+    ctx.reconfigure();
 
-    context.putProperty("pid", getMyPid());
+    cfg.getProperties().put("pid", Util.pid());
 
-    final String ident = context.getProperty("ident");
+    final String ident = cfg.getProperties().get("ident");
     if (ident == null) {
-      context.putProperty("ident", defaultIdent);
+      cfg.getProperties().put("ident", defaultIdent);
     }
-
-    StatusPrinter.printInCaseOfErrorsOrWarnings(context);
   }
 
-  // TODO (bjorn): We probably want to move this to the utilities project.
-  // Also, the portability of this function is not guaranteed.
-  private static String getMyPid() {
-    String pid = "0";
-    try {
-      final String nameStr = ManagementFactory.getRuntimeMXBean().getName();
+  /**
+   * Reconfigure logging to use specified level and appender, clearing out other appenders.
+   */
+  private static void reconfigure(final Level level, final Appender appender) {
+    final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    final AbstractConfiguration cfg = (AbstractConfiguration) ctx.getConfiguration();
 
-      // XXX (bjorn): Really stupid parsing assuming that nameStr will be of the form
-      // "pid@hostname", which is probably not guaranteed.
-      pid = nameStr.split("@")[0];
-    } catch (RuntimeException e) {
-      // Fall through.
+    // Remove and stop all appenders
+    clearAppenders(cfg.getRootLogger());
+    for (final LoggerConfig loggerConfig : cfg.getLoggers().values()) {
+      clearAppenders(loggerConfig);
     }
-    return pid;
+    stopAppenders(cfg.getAppenders());
+    cfg.getAppenders().clear();
+
+    // Setup new appender
+    if (appender != null) {
+      cfg.addAppender(appender);
+      cfg.getRootLogger().addAppender(appender, ALL, null);
+    }
+
+    // Setup new logging level
+    cfg.getRootLogger().setLevel(level.level);
+    for (final LoggerConfig logger : cfg.getLoggers().values()) {
+      logger.setLevel(level.level);
+    }
+
+    // Take all configuration changes into effect
+    ctx.updateLoggers();
+
+    // Log uncaught exceptions
+    UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
   }
 
-  private static String getSyslogHost() {
+  /**
+   * Remove and stop all appenders of a logger.
+   */
+  private static void clearAppenders(final LoggerConfig config) {
+    final Map<String, Appender> appenders = new HashMap<String, Appender>(config.getAppenders());
+    for (final String appender : appenders.keySet()) {
+      config.removeAppender(appender);
+    }
+    stopAppenders(appenders);
+  }
+
+  /**
+   * Stop a set of appenders.
+   */
+  private static void stopAppenders(final Map<String, Appender> appenders) {
+    for (final Appender appender : appenders.values()) {
+      appender.stop();
+    }
+  }
+
+  private static String syslogHost() {
     return emptyToNull(getenv("SPOTIFY_SYSLOG_HOST"));
   }
 
-  private static int getSyslogPort() {
+  private static int syslogPort() {
     final String port = getenv("SPOTIFY_SYSLOG_PORT");
     return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
   }
 
+  private static String emptyToNull(final String s) {
+    return isNullOrEmpty(s) ? null : s;
+  }
+
+  private static boolean isNullOrEmpty(final String s) {
+    return s == null || s.isEmpty();
+  }
 }

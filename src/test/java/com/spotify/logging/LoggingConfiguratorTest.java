@@ -18,34 +18,29 @@ package com.spotify.logging;
 
 import org.junit.Test;
 
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.net.SyslogAppender;
-
-import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
+import static com.spotify.logging.LoggingConfigurator.syslogAppender;
 import static org.junit.Assert.assertEquals;
 
 public class LoggingConfiguratorTest {
 
   @Test
   public void testGetSyslogAppender() {
-    final LoggerContext context = new LoggerContext();
+    MillisecondPrecisionSyslogAppender appender;
 
-    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1);
-    assertEquals("wrong host", "localhost", appender.getSyslogHost());
-    assertEquals("wrong port", 514, appender.getPort());
+    appender = (MillisecondPrecisionSyslogAppender) syslogAppender("", -1, "foo");
+    assertEquals("wrong host", "localhost", appender.host());
+    assertEquals("wrong port", 514, appender.port());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, -1);
-    assertEquals("wrong host", "localhost", appender.getSyslogHost());
-    assertEquals("wrong port", 514, appender.getPort());
+    appender = (MillisecondPrecisionSyslogAppender) syslogAppender(null, -1, "foo");
+    assertEquals("wrong host", "localhost", appender.host());
+    assertEquals("wrong port", 514, appender.port());
 
-    appender = (SyslogAppender) getSyslogAppender(context, "host", -1);
-    assertEquals("wrong host", "host", appender.getSyslogHost());
-    assertEquals("wrong port", 514, appender.getPort());
+    appender = (MillisecondPrecisionSyslogAppender) syslogAppender("127.0.0.1", -1, "foo");
+    assertEquals("wrong host", "127.0.0.1", appender.host());
+    assertEquals("wrong port", 514, appender.port());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, 999);
-    assertEquals("wrong host", "localhost", appender.getSyslogHost());
-    assertEquals("wrong port", 999, appender.getPort());
-
+    appender = (MillisecondPrecisionSyslogAppender) syslogAppender(null, 999, "foo");
+    assertEquals("wrong host", "localhost", appender.host());
+    assertEquals("wrong port", 999, appender.port());
   }
-
 }

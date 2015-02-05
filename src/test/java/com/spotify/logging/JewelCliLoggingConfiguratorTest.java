@@ -42,7 +42,7 @@ public class JewelCliLoggingConfiguratorTest {
   public void threadlog() throws InterruptedException {
     final JewelCliLoggingOptions mockOptions = Mockito.mock(JewelCliLoggingOptions.class);
     when(mockOptions.syslog()).thenReturn(false);
-    when(mockOptions.logFileName()).thenReturn("logback_test.xml");
+    when(mockOptions.logFileName()).thenReturn("log4j2-test.xml");
     when(mockOptions.ident()).thenReturn("test");
     JewelCliLoggingConfigurator.configure(mockOptions);
 
