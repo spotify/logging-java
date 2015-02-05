@@ -79,5 +79,13 @@ public class ConfigFileExample {
     }
   }
 
+  /**
+   * Helper for running the example above with the custom syslog logging config file.
+   */
+  public static class CustomSyslogExampleRunner {
 
+    public static void main(final String... args) {
+      ConfigFileExample.main("--logconfig", "logback_custom_syslog.xml");
+    }
+  }
 }
