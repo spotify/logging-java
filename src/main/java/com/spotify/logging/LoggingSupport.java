@@ -63,7 +63,7 @@ public class LoggingSupport {
         } else {
           first = false;
         }
-        buf.append(escape(part));
+        appendEscaped(part, buf);
       }
 
       buf.append(']');
@@ -149,16 +149,25 @@ public class LoggingSupport {
     line.append(type).append('\t').append(version);
 
     for (final Object arg : args) {
-      line.append('\t').append(escape(arg));
+      line.append('\t');
+      appendEscaped(arg, line);
     }
 
     return line.toString();
   }
 
-  protected static String escape(final Object o) {
+  protected static void appendEscaped(final Object o, final StringBuilder out) {
     if (o == null) {
-      return "";
+      return;
     }
-    return o.toString().replaceAll("[\t\n]", " ");
+    final String s = o.toString();
+    for (int i = 0; i < s.length(); i++) {
+      final char c = s.charAt(i);
+      if (c == '\t' || c == '\n') {
+        out.append(' ');
+      } else {
+        out.append(c);
+      }
+    }
   }
 }
