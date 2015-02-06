@@ -79,4 +79,11 @@ public class LoggingSupportTest {
     LoggingSupport.info(logger, "FooLog", 2, ident, "somefield");
     verify(logger).info("0 1:[hello\t] FooLog\t2\tsomefield");
   }
+
+  @Test
+  public void doLogEscapedIdent() {
+    final LoggingSupport.Ident ident = new LoggingSupport.Ident(1, "hello", "foo\tbar\n", "baz");
+    LoggingSupport.info(logger, "FooLog", 2, ident, "somefield");
+    verify(logger).info("0 1:[hello\tfoo bar \tbaz] FooLog\t2\tsomefield");
+  }
 }
