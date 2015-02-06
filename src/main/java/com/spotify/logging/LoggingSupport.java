@@ -19,6 +19,7 @@ package com.spotify.logging;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 
 /**
  * Java analogue of spotify.util.logging_support module from spotify-common. Does not currently
@@ -31,6 +32,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LoggingSupport {
 
   protected static final AtomicLong rid = new AtomicLong();
+
+  private static final Pattern TAB_NEWLINE = Pattern.compile("[\t\n]");
 
   /**
    * The ident portion of the log line (comes between the record ID and the log message type).
@@ -159,6 +162,6 @@ public class LoggingSupport {
     if (o == null) {
       return "";
     }
-    return o.toString().replaceAll("[\t\n]", " ");
+    return TAB_NEWLINE.matcher(o.toString()).replaceAll(" ");
   }
 }
