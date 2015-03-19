@@ -9,6 +9,7 @@ import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.net.AbstractSocketManager;
 import org.apache.logging.log4j.core.net.Protocol;
+import org.apache.logging.log4j.core.net.ssl.SslConfiguration;
 import org.apache.logging.log4j.util.EnglishEnums;
 
 import java.io.Serializable;
@@ -24,6 +25,10 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   private static final int NO_RECONNECTION_DELAY = 0;
   private static final boolean NO_APPEND_NEWLINE = false;
   private static final String NO_ESCAPE_NEWLINE = null;
+
+  private static final int CONNECT_TIMEOUT_5000_MILLIS = 5000;
+  private static final boolean IMMEDIATE_FAIL = true;
+  private static final SslConfiguration NO_SSL_CONFIG = null;
 
   private final String host;
   private final int port;
@@ -67,7 +72,8 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
         LOCAL0, ident, Util.pid(), appendNewline, escapeNewline);
 
     final AbstractSocketManager manager = createSocketManager(
-        name, protocol, host, port, null, NO_RECONNECTION_DELAY, true, layout);
+        name, protocol, host, port, CONNECT_TIMEOUT_5000_MILLIS, NO_SSL_CONFIG,
+        NO_RECONNECTION_DELAY, IMMEDIATE_FAIL, layout);
 
     return new MillisecondPrecisionSyslogAppender(
         name, host, port, layout, filter, ignoreExceptions, immediateFlush, manager);
