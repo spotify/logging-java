@@ -24,9 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * Java analogue of spotify.util.logging_support module from spotify-common. Does not currently
  * exactly mirror the API of Python logging_support, but tries to be similar for basic
  * functionality.
- *
- * See <a href="https://wiki.spotify.net/wiki/Backend_architecture/Logging">the wiki</a> for more
- * information.
  */
 public class LoggingSupport {
 
