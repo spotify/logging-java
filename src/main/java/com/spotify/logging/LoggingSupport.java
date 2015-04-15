@@ -79,9 +79,7 @@ public class LoggingSupport {
    * @param logger  Which Logger to use for writing the log messages. It is assumed that this Logger
    *                is already set up via com.spotify.logging.LoggingConfigurator and a
    *                [service]-log4j.xml configuration so that the time stamp, hostname, service, and
-   *                process ID portions of the log message are automatically prepended. See for
-   *                example search's <a href="https://git.spotify.net/cgit.cgi/search.git/tree/src/main/java/com/spotify/search/Main.java">Main.java</a>
-   *                and <a href="https://git.spotify.net/cgit.cgi/search.git/tree/search-log4j.xml">search-log4j.xml</a>.
+   *                process ID portions of the log message are automatically prepended.
    * @param type    Log message type. Log messages are defined in the messages.py module in the
    *                log-parser git project. When a new message type is added or changed in a
    *                service, it should also be changed/added in messages.py.
