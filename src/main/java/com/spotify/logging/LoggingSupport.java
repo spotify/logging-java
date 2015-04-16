@@ -21,9 +21,7 @@ import org.slf4j.Logger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Java analogue of spotify.util.logging_support module from spotify-common. Does not currently
- * exactly mirror the API of Python logging_support, but tries to be similar for basic
- * functionality.
+ * Utility for emitting log messages in the Spotify log format.
  */
 public class LoggingSupport {
 
