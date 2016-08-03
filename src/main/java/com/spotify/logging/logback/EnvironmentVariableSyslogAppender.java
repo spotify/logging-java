@@ -1,8 +1,11 @@
 package com.spotify.logging.logback;
 
+import com.google.common.base.Preconditions;
+
 import com.spotify.logging.LoggingConfigurator;
 
 import ch.qos.logback.classic.net.SyslogAppender;
+import ch.qos.logback.core.CoreConstants;
 
 /**
  * A {@link SyslogAppender} that uses millisecond precision, and that by default configures its
@@ -13,13 +16,22 @@ public class EnvironmentVariableSyslogAppender extends MillisecondPrecisionSyslo
 
   private String syslogHostEnvVar = LoggingConfigurator.SPOTIFY_SYSLOG_HOST;
   private String syslogPortEnvVar = LoggingConfigurator.SPOTIFY_SYSLOG_PORT;
+  private String serviceName;
 
   private boolean portConfigured = false;
 
   @Override
   public void start() {
+    Preconditions.checkState(serviceName != null, "serviceName must be configured");
+
     // set up some defaults
     setFacility("LOCAL0");
+
+    // our internal syslog-ng configuration splits logs up based on service name, and expects the
+    // format below.
+    String serviceAndPid = String.format("%s[%s]", serviceName, LoggingConfigurator.getMyPid());
+    setSuffixPattern(serviceAndPid + ": %msg");
+    setStackTracePattern(serviceAndPid + ": " + CoreConstants.TAB);
 
     if (getSyslogHost() == null) {
       setSyslogHost(System.getenv(syslogHostEnvVar));
@@ -63,5 +75,13 @@ public class EnvironmentVariableSyslogAppender extends MillisecondPrecisionSyslo
   public void setPort(int port) {
     portConfigured = true;
     super.setPort(port);
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 }

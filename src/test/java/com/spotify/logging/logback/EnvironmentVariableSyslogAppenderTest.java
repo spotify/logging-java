@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class EnvironmentVariableSyslogAppenderTest {
 
@@ -28,6 +28,7 @@ public class EnvironmentVariableSyslogAppenderTest {
   public void setUp() throws Exception {
     appender = new EnvironmentVariableSyslogAppender();
     appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
+    appender.setServiceName("myservice");
   }
 
   @Test
@@ -106,6 +107,45 @@ public class EnvironmentVariableSyslogAppenderTest {
     appender.start();
 
     assertThat(appender.getPort(), is(5242));
+  }
+
+  @Test
+  public void shouldFailIfServiceNameMissing() throws Exception {
+    appender = new EnvironmentVariableSyslogAppender();
+    appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
+
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("serviceName must be configured");
+
+    appender.start();
+  }
+
+  @Test
+  public void shouldAddIdentToSuffixPattern() throws Exception {
+    appender.start();
+
+    assertThat(appender.getSuffixPattern(), containsString("myservice"));
+  }
+
+  @Test
+  public void shouldAddPidToSuffixPattern() throws Exception {
+    appender.start();
+
+    assertThat(appender.getSuffixPattern(), containsString(LoggingConfigurator.getMyPid()));
+  }
+
+  @Test
+  public void shouldAddIdentToStackTracePattern() throws Exception {
+    appender.start();
+
+    assertThat(appender.getStackTracePattern(), containsString("myservice"));
+  }
+
+  @Test
+  public void shouldAddPidToStackTracePattern() throws Exception {
+    appender.start();
+
+    assertThat(appender.getStackTracePattern(), containsString(LoggingConfigurator.getMyPid()));
   }
 
   private void setSyslogHostEnvVar() {
