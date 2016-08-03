@@ -15,9 +15,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class EnvironmentVariableSyslogAppenderTest {
+public class SpotifyInternalAppenderTest {
 
-  private EnvironmentVariableSyslogAppender appender;
+  private SpotifyInternalAppender appender;
 
   @Rule
   public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -26,7 +26,7 @@ public class EnvironmentVariableSyslogAppenderTest {
 
   @Before
   public void setUp() throws Exception {
-    appender = new EnvironmentVariableSyslogAppender();
+    appender = new SpotifyInternalAppender();
     appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
     appender.setServiceName("myservice");
   }
@@ -88,30 +88,8 @@ public class EnvironmentVariableSyslogAppenderTest {
   }
 
   @Test
-  public void shouldSupportCustomisingEnvironmentVariableForHost() throws Exception {
-    environmentVariables.set("MY_HOST_ENVVAR", "www.spotify.com");
-
-    appender.setSyslogHostEnvVar("MY_HOST_ENVVAR");
-
-    appender.start();
-
-    assertThat(appender.getSyslogHost(), is("www.spotify.com"));
-  }
-
-  @Test
-  public void shouldSupportCustomisingEnvironmentVariableForPort() throws Exception {
-    environmentVariables.set("MY_PORT_ENVVAR", "5242");
-
-    appender.setSyslogPortEnvVar("MY_PORT_ENVVAR");
-
-    appender.start();
-
-    assertThat(appender.getPort(), is(5242));
-  }
-
-  @Test
   public void shouldFailIfServiceNameMissing() throws Exception {
-    appender = new EnvironmentVariableSyslogAppender();
+    appender = new SpotifyInternalAppender();
     appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
 
     thrown.expect(IllegalStateException.class);
