@@ -58,6 +58,8 @@ import static java.lang.System.getenv;
 public class LoggingConfigurator {
 
   public static final String DEFAULT_IDENT = "java";
+  public static final String SPOTIFY_SYSLOG_HOST = "SPOTIFY_SYSLOG_HOST";
+  public static final String SPOTIFY_SYSLOG_PORT = "SPOTIFY_SYSLOG_PORT";
 
   public enum Level {
     OFF(ch.qos.logback.classic.Level.OFF),
@@ -169,8 +171,8 @@ public class LoggingConfigurator {
    * @param level logging level to use.
    */
   public static void configureSyslogDefaults(final String ident, final Level level) {
-    final String syslogHost = getenv("SPOTIFY_SYSLOG_HOST");
-    final String port = getenv("SPOTIFY_SYSLOG_PORT");
+    final String syslogHost = getenv(SPOTIFY_SYSLOG_HOST);
+    final String port = getenv(SPOTIFY_SYSLOG_PORT);
     final int syslogPort = port == null ? -1 : Integer.valueOf(port);
     configureSyslogDefaults(ident, level, syslogHost, syslogPort);
   }
@@ -448,11 +450,11 @@ public class LoggingConfigurator {
   }
 
   private static String getSyslogHost() {
-    return emptyToNull(getenv("SPOTIFY_SYSLOG_HOST"));
+    return emptyToNull(getenv(SPOTIFY_SYSLOG_HOST));
   }
 
   private static int getSyslogPort() {
-    final String port = getenv("SPOTIFY_SYSLOG_PORT");
+    final String port = getenv(SPOTIFY_SYSLOG_PORT);
     return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
   }
 
