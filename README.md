@@ -1,7 +1,7 @@
 spotify-logging
 ===============
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.norberg/rut/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.spotify/logging) [![Build Status](https://travis-ci.org/spotify/logging-java.svg?branch=master)](https://travis-ci.org/spotify/logging-java) [![docs examples](https://sourcegraph.com/api/repos/github.com/spotify/logging-java/.badges/docs-examples.svg)](https://sourcegraph.com/github.com/spotify/logging-java)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.spotify/logging/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.spotify/logging) [![Build Status](https://travis-ci.org/spotify/logging-java.svg?branch=master)](https://travis-ci.org/spotify/logging-java) [![docs examples](https://sourcegraph.com/api/repos/github.com/spotify/logging-java/.badges/docs-examples.svg)](https://sourcegraph.com/github.com/spotify/logging-java)
 
 
 A small set of utility classes for setting up logback and a helper to
