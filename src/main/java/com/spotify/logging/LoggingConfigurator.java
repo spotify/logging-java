@@ -435,7 +435,7 @@ public class LoggingConfigurator {
 
   // TODO (bjorn): We probably want to move this to the utilities project.
   // Also, the portability of this function is not guaranteed.
-  public static String getMyPid() {
+  private static String getMyPid() {
     String pid = "0";
     try {
       final String nameStr = ManagementFactory.getRuntimeMXBean().getName();

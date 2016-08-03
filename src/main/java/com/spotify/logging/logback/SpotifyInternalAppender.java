@@ -1,8 +1,11 @@
 package com.spotify.logging.logback;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import com.spotify.logging.LoggingConfigurator;
+
+import java.lang.management.ManagementFactory;
 
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.CoreConstants;
@@ -34,7 +37,7 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
 
     // our internal syslog-ng configuration splits logs up based on service name, and expects the
     // format below.
-    String serviceAndPid = String.format("%s[%s]", serviceName, LoggingConfigurator.getMyPid());
+    String serviceAndPid = String.format("%s[%s]", serviceName, getMyPid());
     setSuffixPattern(serviceAndPid + ": %msg");
     setStackTracePattern(serviceAndPid + ": " + CoreConstants.TAB);
 
@@ -74,5 +77,23 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  // copied from LoggingConfigurator to avoid making public and exposing externally.
+  // TODO (bjorn): We probably want to move this to the utilities project.
+  // Also, the portability of this function is not guaranteed.
+  @VisibleForTesting
+  static String getMyPid() {
+    String pid = "0";
+    try {
+      final String nameStr = ManagementFactory.getRuntimeMXBean().getName();
+
+      // XXX (bjorn): Really stupid parsing assuming that nameStr will be of the form
+      // "pid@hostname", which is probably not guaranteed.
+      pid = nameStr.split("@")[0];
+    } catch (RuntimeException e) {
+      // Fall through.
+    }
+    return pid;
   }
 }

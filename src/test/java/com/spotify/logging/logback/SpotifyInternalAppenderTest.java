@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
+import static com.spotify.logging.logback.SpotifyInternalAppender.getMyPid;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -99,7 +100,7 @@ public class SpotifyInternalAppenderTest {
   }
 
   @Test
-  public void shouldAddIdentToSuffixPattern() throws Exception {
+  public void shouldAddServiceNameToSuffixPattern() throws Exception {
     appender.start();
 
     assertThat(appender.getSuffixPattern(), containsString("myservice"));
@@ -109,11 +110,11 @@ public class SpotifyInternalAppenderTest {
   public void shouldAddPidToSuffixPattern() throws Exception {
     appender.start();
 
-    assertThat(appender.getSuffixPattern(), containsString(LoggingConfigurator.getMyPid()));
+    assertThat(appender.getSuffixPattern(), containsString(getMyPid()));
   }
 
   @Test
-  public void shouldAddIdentToStackTracePattern() throws Exception {
+  public void shouldAddServiceNameToStackTracePattern() throws Exception {
     appender.start();
 
     assertThat(appender.getStackTracePattern(), containsString("myservice"));
@@ -123,7 +124,7 @@ public class SpotifyInternalAppenderTest {
   public void shouldAddPidToStackTracePattern() throws Exception {
     appender.start();
 
-    assertThat(appender.getStackTracePattern(), containsString(LoggingConfigurator.getMyPid()));
+    assertThat(appender.getStackTracePattern(), containsString(getMyPid()));
   }
 
   private void setSyslogHostEnvVar() {
