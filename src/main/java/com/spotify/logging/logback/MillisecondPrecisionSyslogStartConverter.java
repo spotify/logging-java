@@ -16,6 +16,8 @@
 
 package com.spotify.logging.logback;
 
+import com.google.common.base.Optional;
+
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,7 +53,9 @@ public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConvert
 
     facility = SyslogAppenderBase.facilityStringToint(facilityStr);
 
-    localHostName = getLocalHostname();
+    localHostName = Optional.fromNullable(getContext().getProperty("hostname"))
+        .or(getLocalHostname());
+
     try {
       // ASL doesn't handle milliseconds.
       if (os.equals("Mac OS X")) {
