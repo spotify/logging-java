@@ -16,7 +16,9 @@
 
 package com.spotify.logging;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -143,6 +146,7 @@ public class LoggingConfigurator {
     context.reset();
     context.putProperty("ident", ident);
     context.putProperty("pid", getMyPid());
+    context.putProperty("hostname", getHeliosHostname());
 
     // Setup stderr output
     rootLogger.addAppender(getStdErrAppender(context));
@@ -209,6 +213,7 @@ public class LoggingConfigurator {
     context.reset();
     context.putProperty("ident", ident);
     context.putProperty("pid", getMyPid());
+    context.putProperty("hostname", getHeliosHostname());
 
     // Setup syslog output
     logger.addAppender(getSyslogAppender(context, host, port));
@@ -346,6 +351,7 @@ public class LoggingConfigurator {
     context.reset();
     context.putProperty("pid", getMyPid());
     context.putProperty("ident", opts.ident());
+    context.putProperty("hostname", getHeliosHostname());
 
     // See if syslog host was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to an empty string.
@@ -430,6 +436,8 @@ public class LoggingConfigurator {
       context.putProperty("ident", defaultIdent);
     }
 
+    context.putProperty("hostname", getHeliosHostname());
+
     StatusPrinter.printInCaseOfErrorsOrWarnings(context);
   }
 
@@ -456,6 +464,17 @@ public class LoggingConfigurator {
   private static int getSyslogPort() {
     final String port = getenv(SPOTIFY_SYSLOG_PORT);
     return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
+  }
+
+  private static String getHeliosHostname() {
+    for (Map.Entry<String, String> entry : getenv().entrySet()) {
+      if (entry.getKey().matches("HELIOS_PORT_\\w+")) {
+        return Splitter.on(CharMatcher.anyOf(".:"))
+            .splitToList(entry.getValue())
+            .get(0);
+      }
+    }
+    return null;
   }
 
 }
