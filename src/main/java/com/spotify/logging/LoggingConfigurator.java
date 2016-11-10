@@ -142,11 +142,7 @@ public class LoggingConfigurator {
     final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     // Setup context
-    final LoggerContext context = rootLogger.getLoggerContext();
-    context.reset();
-    context.putProperty("ident", ident);
-    context.putProperty("pid", getMyPid());
-    context.putProperty("hostname", getHeliosHostname());
+    final LoggerContext context = setupLoggerContext(rootLogger, ident);
 
     // Setup stderr output
     rootLogger.addAppender(getStdErrAppender(context));
@@ -157,7 +153,6 @@ public class LoggingConfigurator {
     // Log uncaught exceptions
     UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
   }
-
 
   /**
    * Configure logging with default behavior and log to syslog using INFO logging level.
@@ -209,11 +204,7 @@ public class LoggingConfigurator {
     final Logger logger = (Logger) LoggerFactory.getLogger(loggerName);
 
     // Setup context
-    final LoggerContext context = logger.getLoggerContext();
-    context.reset();
-    context.putProperty("ident", ident);
-    context.putProperty("pid", getMyPid());
-    context.putProperty("hostname", getHeliosHostname());
+    final LoggerContext context = setupLoggerContext(logger, ident);
 
     // Setup syslog output
     logger.addAppender(getSyslogAppender(context, host, port));
@@ -347,11 +338,7 @@ public class LoggingConfigurator {
     UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
 
     // Setup context
-    final LoggerContext context = rootLogger.getLoggerContext();
-    context.reset();
-    context.putProperty("pid", getMyPid());
-    context.putProperty("ident", opts.ident());
-    context.putProperty("hostname", getHeliosHostname());
+    final LoggerContext context = setupLoggerContext(rootLogger, opts.ident());
 
     // See if syslog host was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to an empty string.
@@ -430,15 +417,23 @@ public class LoggingConfigurator {
     }
 
     context.putProperty("pid", getMyPid());
+    context.putProperty("hostname", getHeliosHostname());
 
     final String ident = context.getProperty("ident");
     if (ident == null) {
       context.putProperty("ident", defaultIdent);
     }
 
-    context.putProperty("hostname", getHeliosHostname());
-
     StatusPrinter.printInCaseOfErrorsOrWarnings(context);
+  }
+
+  private static LoggerContext setupLoggerContext(Logger rootLogger, String ident) {
+    final LoggerContext context = rootLogger.getLoggerContext();
+    context.reset();
+    context.putProperty("ident", ident);
+    context.putProperty("pid", getMyPid());
+    context.putProperty("hostname", getHeliosHostname());
+    return context;
   }
 
   // TODO (bjorn): We probably want to move this to the utilities project.
