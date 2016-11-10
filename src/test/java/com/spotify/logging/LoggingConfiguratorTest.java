@@ -69,15 +69,8 @@ public class LoggingConfiguratorTest {
   }
 
   @Test
-  public void shouldReturnHeliosHostnameWithNoDomain() {
-    environmentVariables.set("HELIOS_PORT_foo", "hostname:1234");
-    LoggingConfigurator.configureDefaults();
-    assertEquals("hostname", getLoggingContextHostnameProperty());
-  }
-
-  @Test
-  public void shouldReturnHeliosHostnameWithDomain() {
-    environmentVariables.set("HELIOS_PORT_foo", "hostname.domain.com:1234");
+  public void shouldReturnHeliosHostname() {
+    environmentVariables.set(LoggingConfigurator.SPOTIFY_HOSTNAME, "hostname");
     LoggingConfigurator.configureDefaults();
     assertEquals("hostname", getLoggingContextHostnameProperty());
   }
@@ -90,14 +83,7 @@ public class LoggingConfiguratorTest {
 
   @Test
   public void shouldReturnHeliosHostnameWithNoDomainForSyslogAppender() {
-    environmentVariables.set("HELIOS_PORT_foo", "hostname:1234");
-    LoggingConfigurator.configureSyslogDefaults("idnet");
-    assertEquals("hostname", getLoggingContextHostnameProperty());
-  }
-
-  @Test
-  public void shouldReturnHeliosHostnameWithDomainForSyslogAppender() {
-    environmentVariables.set("HELIOS_PORT_foo", "hostname.domain.com:1234");
+    environmentVariables.set(LoggingConfigurator.SPOTIFY_HOSTNAME, "hostname");
     LoggingConfigurator.configureSyslogDefaults("idnet");
     assertEquals("hostname", getLoggingContextHostnameProperty());
   }

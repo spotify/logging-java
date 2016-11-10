@@ -16,9 +16,7 @@
 
 package com.spotify.logging;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
-import com.google.common.base.Splitter;
 
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import java.util.Map;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -61,6 +58,7 @@ import static java.lang.System.getenv;
 public class LoggingConfigurator {
 
   public static final String DEFAULT_IDENT = "java";
+  public static final String SPOTIFY_HOSTNAME = "SPOTIFY_HOSTNAME";
   public static final String SPOTIFY_SYSLOG_HOST = "SPOTIFY_SYSLOG_HOST";
   public static final String SPOTIFY_SYSLOG_PORT = "SPOTIFY_SYSLOG_PORT";
 
@@ -417,7 +415,7 @@ public class LoggingConfigurator {
     }
 
     context.putProperty("pid", getMyPid());
-    context.putProperty("hostname", getHeliosHostname());
+    context.putProperty("hostname", getSpotifyHostname());
 
     final String ident = context.getProperty("ident");
     if (ident == null) {
@@ -432,7 +430,7 @@ public class LoggingConfigurator {
     context.reset();
     context.putProperty("ident", ident);
     context.putProperty("pid", getMyPid());
-    context.putProperty("hostname", getHeliosHostname());
+    context.putProperty("hostname", getSpotifyHostname());
     return context;
   }
 
@@ -461,15 +459,8 @@ public class LoggingConfigurator {
     return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
   }
 
-  private static String getHeliosHostname() {
-    for (Map.Entry<String, String> entry : getenv().entrySet()) {
-      if (entry.getKey().matches("HELIOS_PORT_\\w+")) {
-        return Splitter.on(CharMatcher.anyOf(".:"))
-            .splitToList(entry.getValue())
-            .get(0);
-      }
-    }
-    return null;
+  private static String getSpotifyHostname() {
+    return emptyToNull(getenv(SPOTIFY_HOSTNAME));
   }
 
 }
