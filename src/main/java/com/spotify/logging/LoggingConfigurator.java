@@ -415,7 +415,10 @@ public class LoggingConfigurator {
     }
 
     context.putProperty("pid", getMyPid());
-    context.putProperty("hostname", getSpotifyHostname());
+    final String hostname = getSpotifyHostname();
+    if (hostname != null) {
+      context.putProperty("hostname", hostname);
+    }
 
     final String ident = context.getProperty("ident");
     if (ident == null) {
