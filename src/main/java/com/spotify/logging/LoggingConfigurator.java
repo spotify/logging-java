@@ -16,16 +16,10 @@
 
 package com.spotify.logging;
 
-import com.google.common.base.Charsets;
-
-import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
-
-import net.kencochrane.raven.logback.SentryAppender;
-
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.management.ManagementFactory;
+import static ch.qos.logback.classic.Level.OFF;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.System.getenv;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -38,11 +32,12 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-
-import static ch.qos.logback.classic.Level.OFF;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.lang.System.getenv;
+import com.getsentry.raven.logback.SentryAppender;
+import com.google.common.base.Charsets;
+import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base configurator of logback for spotify services/tools. LoggingConfigurator.configureDefaults()
