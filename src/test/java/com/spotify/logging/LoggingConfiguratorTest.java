@@ -16,18 +16,17 @@
 
 package com.spotify.logging;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.slf4j.LoggerFactory;
+import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.net.SyslogAppender;
-
-import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.slf4j.LoggerFactory;
 
 public class LoggingConfiguratorTest {
 
@@ -63,9 +62,9 @@ public class LoggingConfiguratorTest {
   }
 
   @Test
-  public void shouldReturnHeliosHostnameWithNoHostname() {
+  public void shouldReturnHeliosNonEmptyHostnameWithNoHostname() {
     LoggingConfigurator.configureDefaults();
-    assertNull(getLoggingContextHostnameProperty());
+    assertNotNull(getLoggingContextHostnameProperty());
   }
 
   @Test
@@ -76,9 +75,9 @@ public class LoggingConfiguratorTest {
   }
 
   @Test
-  public void shouldReturnHeliosHostnameWithNoHostnameForSyslogAppender() {
+  public void shouldReturnHeliosNonEmptyHostnameWithNoHostnameForSyslogAppender() {
     LoggingConfigurator.configureSyslogDefaults("idnet");
-    assertNull(getLoggingContextHostnameProperty());
+    assertNotNull(getLoggingContextHostnameProperty());
   }
 
   @Test
@@ -87,5 +86,4 @@ public class LoggingConfiguratorTest {
     LoggingConfigurator.configureSyslogDefaults("idnet");
     assertEquals("hostname", getLoggingContextHostnameProperty());
   }
-
 }
