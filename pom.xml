@@ -71,6 +71,7 @@
       <version>9.0.4</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- We integrate with JewelCLI command line parsing. -->
     <dependency>
       <groupId>uk.co.flamingpenguin.jewelcli</groupId>
