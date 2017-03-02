@@ -48,17 +48,17 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
+      <version>1.7.24</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.0.13</version>
+      <version>1.2.1</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>1.0.13</version>
+      <version>1.2.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -71,6 +71,7 @@
       <version>9.0.4</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- We integrate with JewelCLI command line parsing. -->
     <dependency>
       <groupId>uk.co.flamingpenguin.jewelcli</groupId>
@@ -78,9 +79,9 @@
       <version>0.6</version>
     </dependency>
     <dependency>
-      <groupId>net.kencochrane.raven</groupId>
+      <groupId>com.getsentry.raven</groupId>
       <artifactId>raven-logback</artifactId>
-      <version>4.1.2</version>
+      <version>7.8.2</version>
     </dependency>
 
     <!--test scope-->
