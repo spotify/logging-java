@@ -32,9 +32,10 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-import com.getsentry.raven.logback.SentryAppender;
 import com.google.common.base.Charsets;
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
+import io.sentry.Sentry;
+import io.sentry.logback.SentryAppender;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import org.slf4j.LoggerFactory;
@@ -230,8 +231,8 @@ public class LoggingConfigurator {
 
     final LoggerContext context = rootLogger.getLoggerContext();
 
+    Sentry.init(dsn);
     SentryAppender appender = new SentryAppender();
-    appender.setDsn(dsn);
 
     appender.setContext(context);
     ThresholdFilter levelFilter = new ThresholdFilter();
