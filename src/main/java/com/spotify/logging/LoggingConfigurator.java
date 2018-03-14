@@ -35,6 +35,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.getsentry.raven.logback.SentryAppender;
 import com.google.common.base.Charsets;
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
+import com.spotify.logging.logback.CustomLogstashEncoder;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import org.slf4j.LoggerFactory;
@@ -146,6 +147,39 @@ public class LoggingConfigurator {
     // Log uncaught exceptions
     UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
   }
+
+
+  /**
+   * Configure logging with the LogstashEncoder library.
+   * (https://github.com/logstash/logstash-logback-encoder)
+   *
+   * An appender is configured to send the log messages to stdout. It is expected something like
+   * a Docker container will capture these logs for further processing.
+   *
+   */
+  public static void configureLogstashEncoderDefaults(final Level level) {
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final LoggerContext context = rootLogger.getLoggerContext();
+
+    context.reset();
+
+    final CustomLogstashEncoder encoder = new CustomLogstashEncoder().setupStackdriver();
+    encoder.setContext(context);
+    encoder.start();
+
+    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
+    appender.setTarget("System.out");
+    appender.setName("stdout");
+    appender.setEncoder(encoder);
+    appender.setContext(context);
+    appender.start();
+
+    rootLogger.addAppender(appender);
+    rootLogger.setLevel(level.logbackLevel);
+
+    UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();
+  }
+
 
   /**
    * Configure logging with default behavior and log to syslog using INFO logging level.
