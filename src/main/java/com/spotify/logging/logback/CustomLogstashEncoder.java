@@ -18,7 +18,7 @@ public class CustomLogstashEncoder extends LogstashEncoder {
 
   public CustomLogstashEncoder setupStackdriver() {
     // Setup fields according to https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry
-    logstashFieldNames.setTimestamp("timestamp");
+    logstashFieldNames.setTimestamp("time");
     logstashFieldNames.setLevel("severity");
     this.setFieldNames(logstashFieldNames);
     return this;
