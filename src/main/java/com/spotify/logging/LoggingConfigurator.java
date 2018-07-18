@@ -34,8 +34,8 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.getsentry.raven.logback.SentryAppender;
 import com.google.common.base.Charsets;
-import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 import com.spotify.logging.logback.CustomLogstashEncoder;
+import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import org.slf4j.LoggerFactory;
@@ -52,6 +52,22 @@ import org.slf4j.LoggerFactory;
  * @see JewelCliLoggingConfigurator For some integration with JewelCLI
  */
 public class LoggingConfigurator {
+
+  /**
+   * Defines if new lines should be replaced in the logged message
+   * to avoid potential CRLF injection.
+   * See https://find-sec-bugs.github.io/bugs.htm#CRLF_INJECTION_LOGS
+   */
+  public enum ReplaceNewLines {
+    OFF,
+    ON;
+
+    public static String getMsgPattern(final ReplaceNewLines replaceNewLines) {
+      return replaceNewLines == ReplaceNewLines.ON
+          ? "%replace(%msg){'[\\r\\n]', ''}"
+          : "%msg";
+    }
+  }
 
   public static final String DEFAULT_IDENT = "java";
   public static final String SPOTIFY_HOSTNAME = "SPOTIFY_HOSTNAME";
@@ -111,7 +127,7 @@ public class LoggingConfigurator {
    * @param ident The logging identity.
    */
   public static void configureDefaults(final String ident) {
-    configureDefaults(ident, Level.INFO);
+    configureDefaults(ident, Level.INFO, ReplaceNewLines.OFF);
   }
 
   /**
@@ -121,15 +137,18 @@ public class LoggingConfigurator {
    *
    * @param ident The logging identity.
    * @param level logging level to use.
+   * @param replaceNewLines configures new lines replacement in the messages
    */
-  public static void configureDefaults(final String ident, final Level level) {
+  public static void configureDefaults(final String ident,
+                                       final Level level,
+                                       final ReplaceNewLines replaceNewLines) {
     // Call configureSyslogDefaults if the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT env var is
     // set. If this causes a problem, we could introduce a configureConsoleDefaults method which
     // users could call instead to avoid this behavior.
     final String syslogHost = getSyslogHost();
     final int syslogPort = getSyslogPort();
     if (syslogHost != null || syslogPort != -1) {
-      configureSyslogDefaults(ident, level, syslogHost, syslogPort);
+      configureSyslogDefaults(ident, level, syslogHost, syslogPort, replaceNewLines);
       return;
     }
 
@@ -139,7 +158,7 @@ public class LoggingConfigurator {
     final LoggerContext context = setupLoggerContext(rootLogger, ident);
 
     // Setup stderr output
-    rootLogger.addAppender(getStdErrAppender(context));
+    rootLogger.addAppender(getStdErrAppender(context, replaceNewLines));
 
     // Setup logging level
     rootLogger.setLevel(level.logbackLevel);
@@ -187,7 +206,7 @@ public class LoggingConfigurator {
    * @param ident Syslog ident to use.
    */
   public static void configureSyslogDefaults(final String ident) {
-    configureSyslogDefaults(ident, Level.INFO);
+    configureSyslogDefaults(ident, Level.INFO, ReplaceNewLines.OFF);
   }
 
   /**
@@ -195,12 +214,14 @@ public class LoggingConfigurator {
    *
    * @param ident Syslog ident to use.
    * @param level logging level to use.
+   * @param replaceNewLines configures new lines replacement in the messages
    */
-  public static void configureSyslogDefaults(final String ident, final Level level) {
+  public static void configureSyslogDefaults(final String ident, final Level level,
+                                             final ReplaceNewLines replaceNewLines) {
     final String syslogHost = getenv(SPOTIFY_SYSLOG_HOST);
     final String port = getenv(SPOTIFY_SYSLOG_PORT);
     final int syslogPort = port == null ? -1 : Integer.valueOf(port);
-    configureSyslogDefaults(ident, level, syslogHost, syslogPort);
+    configureSyslogDefaults(ident, level, syslogHost, syslogPort, replaceNewLines);
   }
 
   /**
@@ -210,10 +231,12 @@ public class LoggingConfigurator {
    * @param level logging level to use.
    * @param host Hostname or IP address of syslog host.
    * @param port Port to connect to syslog on.
+   * @param replaceNewLines configures new lines replacement in the messages
    */
   public static void configureSyslogDefaults(final String ident, final Level level,
-                                             final String host, final int port) {
-    configureSyslogDefaults(ident, level, host, port, Logger.ROOT_LOGGER_NAME);
+                                             final String host, final int port,
+                                             final ReplaceNewLines replaceNewLines) {
+    configureSyslogDefaults(ident, level, host, port, Logger.ROOT_LOGGER_NAME, replaceNewLines);
   }
 
   /**
@@ -224,17 +247,19 @@ public class LoggingConfigurator {
    * @param host Hostname or IP address of syslog host.
    * @param port Port to connect to syslog on.
    * @param loggerName Name of the logger to which the syslog appender will be added
+   * @param replaceNewLines configures new lines replacement in the messages
    */
   public static void configureSyslogDefaults(final String ident, final Level level,
                                              final String host, final int port,
-                                             final String loggerName) {
+                                             final String loggerName,
+                                             final ReplaceNewLines replaceNewLines) {
     final Logger logger = (Logger) LoggerFactory.getLogger(loggerName);
 
     // Setup context
     final LoggerContext context = setupLoggerContext(logger, ident);
 
     // Setup syslog output
-    logger.addAppender(getSyslogAppender(context, host, port));
+    logger.addAppender(getSyslogAppender(context, host, port, replaceNewLines));
 
     // Setup logging level
     logger.setLevel(level.logbackLevel);
@@ -286,13 +311,15 @@ public class LoggingConfigurator {
    * @param context The logger context to use.
    * @return An appender writing to stderr.
    */
-  private static Appender<ILoggingEvent> getStdErrAppender(final LoggerContext context) {
+  private static Appender<ILoggingEvent> getStdErrAppender(final LoggerContext context,
+                                                           final ReplaceNewLines replaceNewLines) {
 
     // Setup format
     final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
     encoder.setContext(context);
     encoder.setPattern(
-        "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: %msg%n");
+        "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: "
+            + ReplaceNewLines.getMsgPattern(replaceNewLines) + "%n");
     encoder.setCharset(Charsets.UTF_8);
     encoder.start();
 
@@ -317,8 +344,9 @@ public class LoggingConfigurator {
    * @return An appender that writes to syslog.
    */
   static Appender<ILoggingEvent> getSyslogAppender(final LoggerContext context,
-                                                           final String host,
-                                                           final int port) {
+                                                   final String host,
+                                                   final int port,
+                                                   final ReplaceNewLines replaceNewLines) {
     final String h = isNullOrEmpty(host) ? "localhost" : host;
     final int p = port < 0 ? 514 : port;
 
@@ -331,7 +359,7 @@ public class LoggingConfigurator {
     appender.setCharset(Charsets.UTF_8);
     appender.setContext(context);
     appender.setSuffixPattern(
-        "%property{ident}[%property{pid}]: %msg");
+        "%property{ident}[%property{pid}]: " + ReplaceNewLines.getMsgPattern(replaceNewLines));
     appender.setStackTracePattern(
         "%property{ident}[%property{pid}]: " + CoreConstants.TAB);
     appender.start();
@@ -383,9 +411,9 @@ public class LoggingConfigurator {
 
     // Setup syslog logging
     if (opts.syslog() || syslogHost != null || syslogPort > 0) {
-      rootLogger.addAppender(getSyslogAppender(context, syslogHost, syslogPort));
+      rootLogger.addAppender(getSyslogAppender(context, syslogHost, syslogPort, ReplaceNewLines.OFF));
     } else {
-      rootLogger.addAppender(getStdErrAppender(context));
+      rootLogger.addAppender(getStdErrAppender(context, ReplaceNewLines.OFF));
     }
 
     // Setup default logging level
