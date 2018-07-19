@@ -19,6 +19,7 @@ package com.spotify.logging;
 import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -37,22 +38,36 @@ public class LoggingConfiguratorTest {
   public void testGetSyslogAppender() {
     final LoggerContext context = new LoggerContext();
 
-    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1);
+    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, -1);
+    appender = (SyslogAppender) getSyslogAppender(context, null, -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, "host", -1);
+    appender = (SyslogAppender) getSyslogAppender(context, "host", -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "host", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, 999);
+    appender = (SyslogAppender) getSyslogAppender(context, null, 999, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 999, appender.getPort());
 
+  }
+
+  @Test
+  public void testGetSyslogAppenderRespectsNewLineReplacement() {
+    final LoggerContext context = new LoggerContext();
+
+    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
+
+    appender = (SyslogAppender) getSyslogAppender(context, "", -1, null);
+    assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
+
+    appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.ON);
+    assertEquals("%property{ident}[%property{pid}]: %replace(%msg){'[\\r\\n]', ''}", appender.getSuffixPattern());
   }
 
   private String getLoggingContextHostnameProperty() {

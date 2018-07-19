@@ -32,7 +32,7 @@ public class SimpleConsoleExample {
 
   public static void main(final String... args) {
 
-    LoggingConfigurator.configureDefaults("example", INFO);
+    LoggingConfigurator.configureDefaults("example", INFO, LoggingConfigurator.ReplaceNewLines.ON);
 
     while (true) {
       // Should not be logged
@@ -42,7 +42,7 @@ public class SimpleConsoleExample {
       logger.debug("debug!");
       logger.info("info!");
       logger.warn("warn!");
-      logger.error("error!", new Exception("failure"));
+      logger.error("\nerror!\n", new Exception("failure"));
 
       try {
         Thread.sleep(1000);

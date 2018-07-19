@@ -28,6 +28,8 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
 
   private boolean portConfigured = false;
 
+  private LoggingConfigurator.ReplaceNewLines replaceNewLines = LoggingConfigurator.ReplaceNewLines.OFF;
+
   @Override
   public void start() {
     Preconditions.checkState(serviceName != null, "serviceName must be configured");
@@ -38,7 +40,7 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
     // our internal syslog-ng configuration splits logs up based on service name, and expects the
     // format below.
     String serviceAndPid = String.format("%s[%s]", serviceName, getMyPid());
-    setSuffixPattern(serviceAndPid + ": %msg");
+    setSuffixPattern(serviceAndPid + ": " + LoggingConfigurator.ReplaceNewLines.getMsgPattern(this.replaceNewLines));
     setStackTracePattern(serviceAndPid + ": " + CoreConstants.TAB);
 
     if (getSyslogHost() == null) {
@@ -77,6 +79,10 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  public void setReplaceNewLines(LoggingConfigurator.ReplaceNewLines replaceNewLines) {
+    this.replaceNewLines = replaceNewLines;
   }
 
   // copied from LoggingConfigurator to avoid making public and exposing externally.
