@@ -127,7 +127,20 @@ public class LoggingConfigurator {
    * @param ident The logging identity.
    */
   public static void configureDefaults(final String ident) {
-    configureDefaults(ident, Level.INFO, ReplaceNewLines.OFF);
+    configureDefaults(ident, Level.INFO);
+  }
+
+  /**
+   * Configure logging with default behaviour and log to stderr. If the SPOTIFY_SYSLOG_HOST or
+   * SPOTIFY_SYSLOG_PORT environment variable is defined, the syslog appender will be used,
+   * otherwise console appender will be.
+   *
+   * @param ident The logging identity.
+   * @param level logging level to use.
+   */
+  public static void configureDefaults(final String ident,
+                                       final Level level) {
+    configureDefaults(ident, level, ReplaceNewLines.OFF);
   }
 
   /**
