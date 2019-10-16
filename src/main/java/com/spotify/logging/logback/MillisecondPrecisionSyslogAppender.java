@@ -82,40 +82,67 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
     }
 
     final ILoggingEvent event = (ILoggingEvent) eventObject;
-    IThrowableProxy tp = event.getThrowableProxy();
+    final IThrowableProxy tp = event.getThrowableProxy();
 
     if (tp == null) {
       return;
     }
 
     final String stackTracePrefix = stackTraceLayout.doLayout(event);
-    boolean isRootException = true;
-    while (tp != null) {
-      final StackTraceElementProxy[] stepArray = tp.getStackTraceElementProxyArray();
-      try {
-        handleThrowableFirstLine(sw, tp, stackTracePrefix, isRootException);
-        isRootException = false;
-        for (final StackTraceElementProxy step : stepArray) {
-          final StringBuilder sb = new StringBuilder();
-          sb.append(stackTracePrefix).append(step);
-          sw.write(sb.toString().getBytes());
-          sw.flush();
-        }
-      } catch (IOException e) {
-        break;
+    recursiveWrite(sw, stackTracePrefix, tp, 0, null);
+  }
+
+  private void recursiveWrite(
+      final OutputStream sw,
+      final String stackTracePrefix,
+      final IThrowableProxy tp,
+      final int indent,
+      final String firstLinePrefix) {
+    final StackTraceElementProxy[] stepArray = tp.getStackTraceElementProxyArray();
+    try {
+      handleThrowableFirstLine(sw, tp, stackTracePrefix, indent, firstLinePrefix);
+      for (final StackTraceElementProxy step : stepArray) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(stackTracePrefix);
+        addIndent(sb, indent);
+        sb.append(step);
+        sw.write(sb.toString().getBytes());
+        sw.flush();
       }
-      tp = tp.getCause();
+    } catch (IOException e) {
+      return;
+    }
+
+    final IThrowableProxy[] suppressed = tp.getSuppressed();
+    if (suppressed != null) {
+      for (final IThrowableProxy current : suppressed) {
+        recursiveWrite(sw, stackTracePrefix, current, indent + 1, CoreConstants.SUPPRESSED);
+      }
+    }
+
+    final IThrowableProxy cause = tp.getCause();
+    if (cause != null) {
+      recursiveWrite(sw, stackTracePrefix, cause, indent, CoreConstants.CAUSED_BY);
     }
   }
 
-  private void handleThrowableFirstLine(final OutputStream sw, final IThrowableProxy tp,
-                                        final String stackTracePrefix,
-                                        final boolean isRootException)
-      throws IOException {
-    final StringBuilder sb = new StringBuilder().append(stackTracePrefix);
+  private void addIndent(final StringBuilder sb, final int indent) {
+    for (int i = 0; i < indent; i++) {
+      sb.append(CoreConstants.TAB);
+    }
+  }
 
-    if (!isRootException) {
-      sb.append(CoreConstants.CAUSED_BY);
+  // LOGBACK-411 and LOGBACK-750
+  private void handleThrowableFirstLine(
+      final OutputStream sw,
+      final IThrowableProxy tp,
+      final String stackTracePrefix,
+      final int indent,
+      final String prefix) throws IOException {
+    StringBuilder sb = new StringBuilder().append(stackTracePrefix);
+    addIndent(sb, indent);
+    if (prefix != null) {
+      sb.append(prefix);
     }
     sb.append(tp.getClassName()).append(": ").append(tp.getMessage());
     sw.write(sb.toString().getBytes());
@@ -126,7 +153,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   public Layout<ILoggingEvent> buildLayout() {
     final PatternLayout layout = new PatternLayout();
     layout.getInstanceConverterMap().put("syslogStart",
-                                         MillisecondPrecisionSyslogStartConverter.class.getName());
+        MillisecondPrecisionSyslogStartConverter.class.getName());
     if (suffixPattern == null) {
       suffixPattern = DEFAULT_SUFFIX_PATTERN;
     }
