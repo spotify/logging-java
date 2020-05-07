@@ -19,11 +19,15 @@ package com.spotify.logging;
 import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
+import ch.qos.logback.core.ConsoleAppender;
+import com.spotify.logging.logback.CustomLogstashEncoder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -100,5 +104,60 @@ public class LoggingConfiguratorTest {
     environmentVariables.set(LoggingConfigurator.SPOTIFY_HOSTNAME, "hostname");
     LoggingConfigurator.configureSyslogDefaults("idnet");
     assertEquals("hostname", getLoggingContextHostnameProperty());
+  }
+
+  @Test
+  public void shouldConfigureLogstashEncoderWithLevel() {
+    LoggingConfigurator.configureLogstashEncoderDefaults(LoggingConfigurator.Level.DEBUG);
+    assertLogstashEncoder(Level.DEBUG);
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithIdentAndLevelWhenSyslogEnvVarIsNotSet() {
+    LoggingConfigurator.configureDefaults("some-ident", LoggingConfigurator.Level.DEBUG);
+    assertDefault("some-ident", Level.DEBUG);
+  }
+
+  @Test
+  public void shouldConfigureLogstashEncoderWhenEnvVarIsSetToTrue() {
+    environmentVariables.set("USE_JSON_LOGGING", "true");
+    LoggingConfigurator.configureService("MyService");
+    assertLogstashEncoder(Level.INFO);
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithServiceNameWhenEnvVarIsNotSet() {
+    LoggingConfigurator.configureService("MyService");
+    assertDefault("MyService", Level.INFO);
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithServiceNameWhenEnvVarIsSetToFalse() {
+    environmentVariables.set("USE_JSON_LOGGING", "false");
+    LoggingConfigurator.configureService("MyService");
+    assertDefault("MyService", Level.INFO);
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithServiceNameWhenEnvVarIsSetToYes() {
+    environmentVariables.set("USE_JSON_LOGGING", "yes");
+    LoggingConfigurator.configureService("MyService");
+    assertDefault("MyService", Level.INFO);
+  }
+
+  private void assertLogstashEncoder(final Level level) {
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final ConsoleAppender<?> stdout = (ConsoleAppender<?>) rootLogger.getAppender("stdout");
+    assertTrue(stdout.getEncoder() instanceof CustomLogstashEncoder);
+    assertEquals(level, rootLogger.getLevel());
+  }
+
+  private void assertDefault(final String ident, final Level level) {
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final ConsoleAppender<?> stderr = (ConsoleAppender<?>) rootLogger.getAppender("stderr");
+    assertTrue(stderr.getEncoder() instanceof PatternLayoutEncoder);
+    assertEquals(level, rootLogger.getLevel());
+    final LoggerContext context = rootLogger.getLoggerContext();
+    assertEquals(ident, context.getProperty("ident"));
   }
 }
