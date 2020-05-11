@@ -73,6 +73,7 @@ public class LoggingConfigurator {
   public static final String SPOTIFY_HOSTNAME = "SPOTIFY_HOSTNAME";
   public static final String SPOTIFY_SYSLOG_HOST = "SPOTIFY_SYSLOG_HOST";
   public static final String SPOTIFY_SYSLOG_PORT = "SPOTIFY_SYSLOG_PORT";
+  private static final String USE_JSON_LOGGING = "USE_JSON_LOGGING";
 
   public enum Level {
     OFF(ch.qos.logback.classic.Level.OFF),
@@ -107,6 +108,24 @@ public class LoggingConfigurator {
       }
     }
     rootLogger.setLevel(OFF);
+  }
+
+  /**
+   * Configure logging with default behaviour for a service.
+   *
+   * <p>Uses INFO logging level. If the USE_JSON_LOGGING environment variable is set to {@code
+   * true}, the LogstashEncoder will be used. Otherwise, if the SPOTIFY_SYSLOG_HOST or
+   * SPOTIFY_SYSLOG_PORT environment variable is defined, the syslog appender will be used.
+   * Otherwise console appender will be used.
+   *
+   * @param serviceName name of the service
+   */
+  public static void configureService(final String serviceName) {
+    if (getenv(USE_JSON_LOGGING) != null && Boolean.parseBoolean(getenv(USE_JSON_LOGGING))) {
+      configureLogstashEncoderDefaults(Level.INFO);
+    } else {
+      configureDefaults(serviceName);
+    }
   }
 
   /**
