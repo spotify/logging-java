@@ -3,9 +3,13 @@ version: 2.1
 orbs:
   maven: circleci/maven@1.0.3
 
+executors:
+  default:
+    parameters:
+      tag: 11.0.8
+
 workflows:
   maven_test:
     jobs:
-      - maven/test: # checkout, build, test, and upload test results
-          tag: 11.0.8
+      - maven/test # checkout, build, test, and upload test results
 
