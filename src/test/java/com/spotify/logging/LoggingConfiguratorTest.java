@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,14 +46,9 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.encoder.Encoder;
 import com.google.common.collect.FluentIterable;
 import com.spotify.logging.logback.CustomLogstashEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import net.logstash.logback.composite.JsonProvider;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,43 +57,54 @@ import org.slf4j.LoggerFactory;
 
 public class LoggingConfiguratorTest {
 
-  @Rule
-  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  @Rule public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Test
   public void testGetSyslogAppender() {
     final LoggerContext context = new LoggerContext();
 
-    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    SyslogAppender appender =
+        (SyslogAppender)
+            getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender =
+        (SyslogAppender)
+            getSyslogAppender(context, null, -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, "host", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender =
+        (SyslogAppender)
+            getSyslogAppender(context, "host", -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "host", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender = (SyslogAppender) getSyslogAppender(context, null, 999, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender =
+        (SyslogAppender)
+            getSyslogAppender(context, null, 999, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 999, appender.getPort());
-
   }
 
   @Test
   public void testGetSyslogAppenderRespectsNewLineReplacement() {
     final LoggerContext context = new LoggerContext();
 
-    SyslogAppender appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    SyslogAppender appender =
+        (SyslogAppender)
+            getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
     assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
 
     appender = (SyslogAppender) getSyslogAppender(context, "", -1, null);
     assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
 
-    appender = (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.ON);
-    assertEquals("%property{ident}[%property{pid}]: %replace(%msg){'[\\r\\n]', ''}", appender.getSuffixPattern());
+    appender =
+        (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.ON);
+    assertEquals(
+        "%property{ident}[%property{pid}]: %replace(%msg){'[\\r\\n]', ''}",
+        appender.getSuffixPattern());
   }
 
   private String getLoggingContextHostnameProperty() {
@@ -178,10 +184,11 @@ public class LoggingConfiguratorTest {
     assertTrue(stdout.getEncoder() instanceof CustomLogstashEncoder);
     assertEquals(level, rootLogger.getLevel());
     final CustomLogstashEncoder encoder = (CustomLogstashEncoder) stdout.getEncoder();
-    assertEquals(1, FluentIterable
-        .from(encoder.getProviders().getProviders())
-        .filter(ArgumentsJsonProvider.class)
-        .size());
+    assertEquals(
+        1,
+        FluentIterable.from(encoder.getProviders().getProviders())
+            .filter(ArgumentsJsonProvider.class)
+            .size());
   }
 
   private void assertDefault(final String ident, final Level level) {

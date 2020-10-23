@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,11 +36,6 @@
 
 package com.spotify.logging.logback;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
-import java.nio.charset.Charset;
-
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -49,13 +44,14 @@ import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.net.SyslogAppenderBase;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 
-/**
- * A {@link SyslogAppender} with millisecond timestamp precision.
- */
+/** A {@link SyslogAppender} with millisecond timestamp precision. */
 public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   private Charset charset = Charsets.UTF_8;
   PatternLayout stackTraceLayout = new PatternLayout();
@@ -81,7 +77,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
 
     try {
       String msg = getLayout().doLayout(eventObject);
-      if(msg == null) {
+      if (msg == null) {
         return;
       }
       if (msg.length() > getMaxMessageSize()) {
@@ -158,7 +154,8 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       final IThrowableProxy tp,
       final String stackTracePrefix,
       final int indent,
-      final String prefix) throws IOException {
+      final String prefix)
+      throws IOException {
     StringBuilder sb = new StringBuilder().append(stackTracePrefix);
     addIndent(sb, indent);
     if (prefix != null) {
@@ -172,8 +169,9 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   @Override
   public Layout<ILoggingEvent> buildLayout() {
     final PatternLayout layout = new PatternLayout();
-    layout.getInstanceConverterMap().put("syslogStart",
-        MillisecondPrecisionSyslogStartConverter.class.getName());
+    layout
+        .getInstanceConverterMap()
+        .put("syslogStart", MillisecondPrecisionSyslogStartConverter.class.getName());
     if (suffixPattern == null) {
       suffixPattern = DEFAULT_SUFFIX_PATTERN;
     }
@@ -184,8 +182,9 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   }
 
   private void setupStackTraceLayout() {
-    stackTraceLayout.getInstanceConverterMap().put(
-        "syslogStart", MillisecondPrecisionSyslogStartConverter.class.getName());
+    stackTraceLayout
+        .getInstanceConverterMap()
+        .put("syslogStart", MillisecondPrecisionSyslogStartConverter.class.getName());
 
     stackTraceLayout.setPattern(getPrefixPattern() + getStackTracePattern());
     stackTraceLayout.setContext(getContext());
@@ -204,16 +203,12 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
     }
   }
 
-  /**
-   * @return the charset used for encoding the output
-   */
+  /** @return the charset used for encoding the output */
   public Charset getCharset() {
     return charset;
   }
 
-  /**
-   * @param charset the charset to use for encoding the output
-   */
+  /** @param charset the charset to use for encoding the output */
   public void setCharset(Charset charset) {
     this.charset = charset;
   }

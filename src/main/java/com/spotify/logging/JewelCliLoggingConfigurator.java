@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,11 +42,15 @@ import java.io.File;
 
 /**
  * Configures logging according to logging related options given at the jewel cli command line. The
- * application's command line options should extend JewelCliLoggingOptions and then call: <p>
+ * application's command line options should extend JewelCliLoggingOptions and then call:
+ *
+ * <p>
+ *
  * <pre>
  *   JewelCliLoggingConfigurator.configure(opts);
  * </pre>
- * <p> Prior to command line parsing having been completed, the application is suggested to
+ *
+ * <p>Prior to command line parsing having been completed, the application is suggested to
  * initialize logging as soon as possible using LoggingConfigurator.
  *
  * @see LoggingConfigurator
