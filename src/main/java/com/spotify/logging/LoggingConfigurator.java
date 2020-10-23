@@ -38,6 +38,7 @@ import com.spotify.logging.logback.CustomLogstashEncoder;
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -216,6 +217,7 @@ public class LoggingConfigurator {
 
     final CustomLogstashEncoder encoder = new CustomLogstashEncoder().setupStackdriver();
     encoder.setContext(context);
+    encoder.addProvider(new ArgumentsJsonProvider());
     encoder.start();
 
     final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
