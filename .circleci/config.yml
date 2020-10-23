@@ -3,8 +3,8 @@ version: 2.1
 orbs:
   maven: circleci/maven@1.0.3
 
-executors:
-  default:
+jobs:
+  maven/test:
     parameters:
       tag: 11.0.8
 
