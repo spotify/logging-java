@@ -37,8 +37,6 @@
 package com.spotify.logging;
 
 import static ch.qos.logback.classic.Level.OFF;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.getenv;
 
 import ch.qos.logback.classic.Logger;
@@ -53,11 +51,11 @@ import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.getsentry.raven.logback.SentryAppender;
-import com.google.common.base.Charsets;
 import com.spotify.logging.logback.CustomLogstashEncoder;
 import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
 import org.slf4j.LoggerFactory;
 
@@ -372,7 +370,7 @@ public class LoggingConfigurator {
         "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: "
             + ReplaceNewLines.getMsgPattern(replaceNewLines)
             + "%n");
-    encoder.setCharset(Charsets.UTF_8);
+    encoder.setCharset(StandardCharsets.UTF_8);
     encoder.start();
 
     // Setup stderr appender
@@ -400,7 +398,7 @@ public class LoggingConfigurator {
       final String host,
       final int port,
       final ReplaceNewLines replaceNewLines) {
-    final String h = isNullOrEmpty(host) ? "localhost" : host;
+    final String h = (host == null || host.isEmpty()) ? "localhost" : host;
     final int p = port < 0 ? 514 : port;
 
     final MillisecondPrecisionSyslogAppender appender = new MillisecondPrecisionSyslogAppender();
@@ -409,7 +407,7 @@ public class LoggingConfigurator {
     appender.setSyslogHost(h);
     appender.setPort(p);
     appender.setName("syslog");
-    appender.setCharset(Charsets.UTF_8);
+    appender.setCharset(StandardCharsets.UTF_8);
     appender.setContext(context);
     appender.setSuffixPattern(
         "%property{ident}[%property{pid}]: " + ReplaceNewLines.getMsgPattern(replaceNewLines));
@@ -450,7 +448,7 @@ public class LoggingConfigurator {
     // See if syslog host was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to an empty string.
     String syslogHost = opts.syslogHost();
-    if (isNullOrEmpty(syslogHost)) {
+    if (syslogHost == null || syslogHost.isEmpty()) {
       syslogHost = getSyslogHost();
     }
 
@@ -564,15 +562,17 @@ public class LoggingConfigurator {
   }
 
   private static String getSyslogHost() {
-    return emptyToNull(getenv(SPOTIFY_SYSLOG_HOST));
+    final String host = System.getenv().getOrDefault(SPOTIFY_SYSLOG_HOST, "");
+    return host.isEmpty() ? null : host;
   }
 
   private static int getSyslogPort() {
-    final String port = getenv(SPOTIFY_SYSLOG_PORT);
-    return isNullOrEmpty(port) ? -1 : Integer.valueOf(port);
+    final String port = System.getenv().getOrDefault(SPOTIFY_SYSLOG_PORT, "");
+    return port.isEmpty() ? -1 : Integer.parseInt(port);
   }
 
   private static String getSpotifyHostname() {
-    return emptyToNull(getenv(SPOTIFY_HOSTNAME));
+    final String hostname = System.getenv().getOrDefault(SPOTIFY_HOSTNAME, "");
+    return hostname.isEmpty() ? null : hostname;
   }
 }

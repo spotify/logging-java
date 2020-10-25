@@ -23,8 +23,6 @@ package com.spotify.logging.logback;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.net.SyslogAppenderBase;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import com.spotify.logging.LoggingConfigurator;
 import java.lang.management.ManagementFactory;
 
@@ -50,7 +48,9 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
 
   @Override
   public void start() {
-    Preconditions.checkState(serviceName != null, "serviceName must be configured");
+    if (serviceName == null) {
+      throw new IllegalStateException(String.valueOf("serviceName must be configured"));
+    }
 
     // set up some defaults
     setFacility("LOCAL0");
@@ -113,7 +113,6 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
   // copied from LoggingConfigurator to avoid making public and exposing externally.
   // TODO (bjorn): We probably want to move this to the utilities project.
   // Also, the portability of this function is not guaranteed.
-  @VisibleForTesting
   static String getMyPid() {
     String pid = "0";
     try {
