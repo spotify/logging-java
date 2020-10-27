@@ -44,16 +44,15 @@ import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.net.SyslogAppenderBase;
-import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /** A {@link SyslogAppender} with millisecond timestamp precision. */
 public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
-  private Charset charset = Charsets.UTF_8;
+  private Charset charset = StandardCharsets.UTF_8;
   PatternLayout stackTraceLayout = new PatternLayout();
   private OutputStream sos;
 
@@ -199,7 +198,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       f.setAccessible(true);
       return (OutputStream) f.get(this);
     } catch (ReflectiveOperationException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

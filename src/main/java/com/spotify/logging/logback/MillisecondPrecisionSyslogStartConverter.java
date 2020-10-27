@@ -40,11 +40,11 @@ import ch.qos.logback.classic.pattern.SyslogStartConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.util.LevelToSyslogSeverity;
 import ch.qos.logback.core.net.SyslogAppenderBase;
-import com.google.common.base.Optional;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Optional;
 
 /** A {@link SyslogStartConverter} with millisecond timestamp precision. */
 public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConverter {
@@ -69,7 +69,7 @@ public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConvert
     facility = SyslogAppenderBase.facilityStringToint(facilityStr);
 
     localHostName =
-        Optional.fromNullable(getContext().getProperty("hostname")).or(getLocalHostname());
+        Optional.ofNullable(getContext().getProperty("hostname")).orElse(getLocalHostname());
 
     try {
       // ASL doesn't handle milliseconds.

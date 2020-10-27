@@ -36,12 +36,12 @@
 
 package com.spotify.logging.logback;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertTrue;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 public class MillisecondPrecisionSyslogStartConverterTest {
@@ -56,7 +56,7 @@ public class MillisecondPrecisionSyslogStartConverterTest {
     MillisecondPrecisionSyslogStartConverter millisecondPrecisionSyslogStartConverter =
         new MillisecondPrecisionSyslogStartConverter();
     millisecondPrecisionSyslogStartConverter.setContext(context);
-    millisecondPrecisionSyslogStartConverter.setOptionList(ImmutableList.of("LOCAL0"));
+    millisecondPrecisionSyslogStartConverter.setOptionList(asList("LOCAL0"));
     millisecondPrecisionSyslogStartConverter.start();
 
     LoggingEvent event = new LoggingEvent();
