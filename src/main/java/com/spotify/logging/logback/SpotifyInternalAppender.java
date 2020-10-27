@@ -25,6 +25,7 @@ import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.net.SyslogAppenderBase;
 import com.spotify.logging.LoggingConfigurator;
 import java.lang.management.ManagementFactory;
+import javax.annotation.Nullable;
 
 /**
  * A {@link SyslogAppender} that uses millisecond precision, and that by default configures its
@@ -39,7 +40,7 @@ import java.lang.management.ManagementFactory;
 @SuppressWarnings("WeakerAccess")
 public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender {
 
-  private String serviceName;
+  private @Nullable String serviceName;
 
   private boolean portConfigured = false;
 
@@ -49,7 +50,7 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
   @Override
   public void start() {
     if (serviceName == null) {
-      throw new IllegalStateException(String.valueOf("serviceName must be configured"));
+      throw new IllegalStateException("serviceName must be configured");
     }
 
     // set up some defaults
@@ -72,7 +73,7 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
     super.start();
   }
 
-  private void checkSetPort(String environmentValue) {
+  private void checkSetPort(@Nullable String environmentValue) {
     if (environmentValue == null || portConfigured) {
       return;
     }

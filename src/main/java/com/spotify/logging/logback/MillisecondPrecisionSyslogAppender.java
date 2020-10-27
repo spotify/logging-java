@@ -49,12 +49,13 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 
 /** A {@link SyslogAppender} with millisecond timestamp precision. */
 public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
   private Charset charset = StandardCharsets.UTF_8;
-  PatternLayout stackTraceLayout = new PatternLayout();
-  private OutputStream sos;
+  private final PatternLayout stackTraceLayout = new PatternLayout();
+  private @Nullable OutputStream sos;
 
   @Override
   public void start() {
@@ -82,6 +83,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       if (msg.length() > getMaxMessageSize()) {
         msg = msg.substring(0, getMaxMessageSize());
       }
+      assert sos != null;
       sos.write(msg.getBytes(charset));
       sos.flush();
       postProcess(eventObject, sos);
@@ -112,7 +114,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       final String stackTracePrefix,
       final IThrowableProxy tp,
       final int indent,
-      final String firstLinePrefix) {
+      final @Nullable String firstLinePrefix) {
     final StackTraceElementProxy[] stepArray = tp.getStackTraceElementProxyArray();
     try {
       handleThrowableFirstLine(sw, tp, stackTracePrefix, indent, firstLinePrefix);
@@ -121,7 +123,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
         sb.append(stackTracePrefix);
         addIndent(sb, indent);
         sb.append(step);
-        sw.write(sb.toString().getBytes());
+        sw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
         sw.flush();
       }
     } catch (IOException e) {
@@ -153,7 +155,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       final IThrowableProxy tp,
       final String stackTracePrefix,
       final int indent,
-      final String prefix)
+      final @Nullable String prefix)
       throws IOException {
     StringBuilder sb = new StringBuilder().append(stackTracePrefix);
     addIndent(sb, indent);
@@ -161,7 +163,7 @@ public class MillisecondPrecisionSyslogAppender extends SyslogAppender {
       sb.append(prefix);
     }
     sb.append(tp.getClassName()).append(": ").append(tp.getMessage());
-    sw.write(sb.toString().getBytes());
+    sw.write(sb.toString().getBytes(StandardCharsets.UTF_8));
     sw.flush();
   }
 

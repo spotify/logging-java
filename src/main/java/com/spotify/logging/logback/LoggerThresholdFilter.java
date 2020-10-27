@@ -40,6 +40,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
+import javax.annotation.Nullable;
 
 /**
  * Comparable to ch.qos.logback.classic.filter.ThresholdFilter, but for a specific logger. Filters
@@ -48,20 +49,27 @@ import ch.qos.logback.core.spi.FilterReply;
  */
 public class LoggerThresholdFilter extends Filter<ILoggingEvent> {
 
-  private String logger;
-  private Level level;
-  private String exceptLogger;
+  private @Nullable String logger;
+  private @Nullable Level level;
+  private @Nullable String exceptLogger;
 
   @Override
   public FilterReply decide(ILoggingEvent event) {
-    if (!isStarted()) return FilterReply.NEUTRAL;
-
-    if (logger != null && !event.getLoggerName().startsWith(logger)) return FilterReply.NEUTRAL;
-
-    if (exceptLogger != null && event.getLoggerName().startsWith(exceptLogger))
+    if (!isStarted()) {
       return FilterReply.NEUTRAL;
+    }
 
-    if (level != null && !event.getLevel().isGreaterOrEqual(level)) return FilterReply.DENY;
+    if (logger != null && !event.getLoggerName().startsWith(logger)) {
+      return FilterReply.NEUTRAL;
+    }
+
+    if (exceptLogger != null && event.getLoggerName().startsWith(exceptLogger)) {
+      return FilterReply.NEUTRAL;
+    }
+
+    if (level != null && !event.getLevel().isGreaterOrEqual(level)) {
+      return FilterReply.DENY;
+    }
 
     return FilterReply.NEUTRAL;
   }

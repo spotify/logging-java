@@ -45,11 +45,6 @@ public class UncaughtExceptionLogger {
 
   public static void setDefaultUncaughtExceptionHandler() {
     Thread.setDefaultUncaughtExceptionHandler(
-        new Thread.UncaughtExceptionHandler() {
-          @Override
-          public void uncaughtException(final Thread th, final Throwable t) {
-            logger.error("Uncaught exception in thread " + th, t);
-          }
-        });
+        (th, t) -> logger.error("Uncaught exception in thread " + th, t));
   }
 }
