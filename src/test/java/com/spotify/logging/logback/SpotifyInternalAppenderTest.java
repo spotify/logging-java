@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +20,13 @@
 
 package com.spotify.logging.logback;
 
-import com.spotify.logging.LoggingConfigurator;
+import static com.spotify.logging.logback.SpotifyInternalAppender.getMyPid;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
+import ch.qos.logback.classic.Logger;
+import com.spotify.logging.LoggingConfigurator;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,26 +34,18 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.ExpectedException;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Logger;
-
-import static com.spotify.logging.logback.SpotifyInternalAppender.getMyPid;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
 public class SpotifyInternalAppenderTest {
 
   private SpotifyInternalAppender appender;
 
-  @Rule
-  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  @Rule public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {
     appender = new SpotifyInternalAppender();
-    appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
+    appender.setContext(
+        ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
     appender.setServiceName("myservice");
   }
 
@@ -111,7 +108,8 @@ public class SpotifyInternalAppenderTest {
   @Test
   public void shouldFailIfServiceNameMissing() throws Exception {
     appender = new SpotifyInternalAppender();
-    appender.setContext(((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
+    appender.setContext(
+        ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).getLoggerContext());
 
     thrown.expect(IllegalStateException.class);
     thrown.expectMessage("serviceName must be configured");

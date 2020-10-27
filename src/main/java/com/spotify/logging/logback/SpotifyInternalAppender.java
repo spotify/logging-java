@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,23 +20,20 @@
 
 package com.spotify.logging.logback;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-
-import com.spotify.logging.LoggingConfigurator;
-
-import java.lang.management.ManagementFactory;
-
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.net.SyslogAppenderBase;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.spotify.logging.LoggingConfigurator;
+import java.lang.management.ManagementFactory;
 
 /**
  * A {@link SyslogAppender} that uses millisecond precision, and that by default configures its
  * values for {@link SyslogAppender#syslogHost} and {@link SyslogAppender#port} based on the
- * environment variables specified in {@link LoggingConfigurator#SPOTIFY_SYSLOG_HOST} and
- * {@link LoggingConfigurator#SPOTIFY_SYSLOG_PORT}. If the configuration explicitly sets the
- * {@link SyslogAppenderBase#syslogHost} or {@link SyslogAppenderBase#port} values, the environment
+ * environment variables specified in {@link LoggingConfigurator#SPOTIFY_SYSLOG_HOST} and {@link
+ * LoggingConfigurator#SPOTIFY_SYSLOG_PORT}. If the configuration explicitly sets the {@link
+ * SyslogAppenderBase#syslogHost} or {@link SyslogAppenderBase#port} values, the environment
  * variables will not be used. Note that logback's configuration support allows you to use
  * environment variables in your logback.xml file as well (see
  * http://logback.qos.ch/manual/configuration.html#scopes).
@@ -48,7 +45,8 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
 
   private boolean portConfigured = false;
 
-  private LoggingConfigurator.ReplaceNewLines replaceNewLines = LoggingConfigurator.ReplaceNewLines.OFF;
+  private LoggingConfigurator.ReplaceNewLines replaceNewLines =
+      LoggingConfigurator.ReplaceNewLines.OFF;
 
   @Override
   public void start() {
@@ -60,7 +58,10 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
     // our internal syslog-ng configuration splits logs up based on service name, and expects the
     // format below.
     String serviceAndPid = String.format("%s[%s]", serviceName, getMyPid());
-    setSuffixPattern(serviceAndPid + ": " + LoggingConfigurator.ReplaceNewLines.getMsgPattern(this.replaceNewLines));
+    setSuffixPattern(
+        serviceAndPid
+            + ": "
+            + LoggingConfigurator.ReplaceNewLines.getMsgPattern(this.replaceNewLines));
     setStackTracePattern(serviceAndPid + ": " + CoreConstants.TAB);
 
     if (getSyslogHost() == null) {
@@ -80,8 +81,12 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
       setPort(Integer.parseInt(environmentValue));
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(
-          "unable to parse value for \"" + LoggingConfigurator.SPOTIFY_SYSLOG_PORT + "\" (" +
-          environmentValue + ") as an int", e);
+          "unable to parse value for \""
+              + LoggingConfigurator.SPOTIFY_SYSLOG_PORT
+              + "\" ("
+              + environmentValue
+              + ") as an int",
+          e);
     }
   }
 

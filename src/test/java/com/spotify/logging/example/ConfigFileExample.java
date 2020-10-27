@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,27 +38,19 @@ package com.spotify.logging.example;
 
 import com.spotify.logging.JewelCliLoggingConfigurator;
 import com.spotify.logging.JewelCliLoggingOptions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.co.flamingpenguin.jewel.cli.ArgumentValidationException;
 import uk.co.flamingpenguin.jewel.cli.CliFactory;
 
-/**
- * ConfigFileExample
- */
+/** ConfigFileExample */
 public class ConfigFileExample {
 
   private static final Logger logger = LoggerFactory.getLogger(ConfigFileExample.class);
 
-  private static interface Options extends JewelCliLoggingOptions {
+  private static interface Options extends JewelCliLoggingOptions {}
 
-  }
-
-  /**
-   * Run with -logconfig logback_test.xml or use the example runner below.
-   */
+  /** Run with -logconfig logback_test.xml or use the example runner below. */
   public static void main(final String... args) {
 
     final Options options;
@@ -89,9 +81,7 @@ public class ConfigFileExample {
     }
   }
 
-  /**
-   * Helper for running the example above with the test logging config file.
-   */
+  /** Helper for running the example above with the test logging config file. */
   public static class ExampleRunner {
 
     public static void main(final String... args) {
@@ -99,9 +89,7 @@ public class ConfigFileExample {
     }
   }
 
-  /**
-   * Helper for running the example above with the custom syslog logging config file.
-   */
+  /** Helper for running the example above with the custom syslog logging config file. */
   public static class CustomSyslogExampleRunner {
 
     public static void main(final String... args) {

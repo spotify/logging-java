@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,13 +43,13 @@ public class LogstashEncoderTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
 
-  @Rule
-  public final SystemOutRule systemOutRule = new SystemOutRule().enableLog();
+  @Rule public final SystemOutRule systemOutRule = new SystemOutRule().enableLog();
 
   @Test
   public void shouldIncludeStructuredArguments() throws JsonProcessingException {
     LoggingConfigurator.configureLogstashEncoderDefaults(Level.INFO);
-    log.info("foo={} bar={} list={} map={} thing={}",
+    log.info(
+        "foo={} bar={} list={} map={} thing={}",
         value("foo", 17),
         value("bar", "quux"),
         value("list", ImmutableList.of(1, 2)),
@@ -57,7 +57,8 @@ public class LogstashEncoderTest {
         value("thing", new Thing(5, "6")));
     final String log = systemOutRule.getLog();
     final JsonNode parsedMessage = mapper.readTree(log);
-    assertEquals("foo=17 bar=quux list=[1, 2] map={a=3, b=4} thing=Thing{v1=5, v2='6'}",
+    assertEquals(
+        "foo=17 bar=quux list=[1, 2] map={a=3, b=4} thing=Thing{v1=5, v2='6'}",
         parsedMessage.get("message").asText());
     assertEquals(17, parsedMessage.get("foo").asInt());
     assertEquals("quux", parsedMessage.get("bar").asText());
@@ -86,10 +87,7 @@ public class LogstashEncoderTest {
 
     @Override
     public String toString() {
-      return "Thing{" +
-          "v1=" + v1 +
-          ", v2='" + v2 + '\'' +
-          '}';
+      return "Thing{" + "v1=" + v1 + ", v2='" + v2 + '\'' + '}';
     }
   }
 }

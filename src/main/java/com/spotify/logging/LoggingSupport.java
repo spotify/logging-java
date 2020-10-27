@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,13 +36,10 @@
 
 package com.spotify.logging;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-/**
- * Utility for emitting log messages in the Spotify log format.
- */
+/** Utility for emitting log messages in the Spotify log format. */
 public class LoggingSupport {
 
   protected static final AtomicLong rid = new AtomicLong();
@@ -59,9 +56,9 @@ public class LoggingSupport {
     /**
      * Create a new ident.
      *
-     * @param version   Ident version number. Will only be prepended to ident if not equal to 0.
+     * @param version Ident version number. Will only be prepended to ident if not equal to 0.
      * @param identData Objects that will be converted to strings, joined with tab characters, and
-     *                  placed inside brackets to make up the ident string.
+     *     placed inside brackets to make up the ident string.
      */
     public Ident(final int version, final Object... identData) {
       final StringBuilder buf = new StringBuilder();
@@ -94,22 +91,26 @@ public class LoggingSupport {
   /**
    * Generate a new debug log message according to the Spotify log format.
    *
-   * @param logger  Which Logger to use for writing the log messages. It is assumed that this Logger
-   *                is already set up via com.spotify.logging.LoggingConfigurator and a
-   *                [service]-log4j.xml configuration so that the time stamp, hostname, service, and
-   *                process ID portions of the log message are automatically prepended.
-   * @param type    Log message type. Log messages are defined in the messages.py module in the
-   *                log-parser git project. When a new message type is added or changed in a
-   *                service, it should also be changed/added in messages.py.
+   * @param logger Which Logger to use for writing the log messages. It is assumed that this Logger
+   *     is already set up via com.spotify.logging.LoggingConfigurator and a [service]-log4j.xml
+   *     configuration so that the time stamp, hostname, service, and process ID portions of the log
+   *     message are automatically prepended.
+   * @param type Log message type. Log messages are defined in the messages.py module in the
+   *     log-parser git project. When a new message type is added or changed in a service, it should
+   *     also be changed/added in messages.py.
    * @param version Version of the log message. This is incremented by callers and in messages.py if
-   *                the format of a given log message type is changed.
-   * @param ident   Ident object to give information generally about a client who made the request
-   *                that resulted in this message.
-   * @param args    Additional arguments that will be converted to strings, escaped, and appended
-   *                (tab-separated) after the log message type and version number.
+   *     the format of a given log message type is changed.
+   * @param ident Ident object to give information generally about a client who made the request
+   *     that resulted in this message.
+   * @param args Additional arguments that will be converted to strings, escaped, and appended
+   *     (tab-separated) after the log message type and version number.
    */
-  public static void debug(final Logger logger, final String type, final int version,
-                           final Ident ident, final Object... args) {
+  public static void debug(
+      final Logger logger,
+      final String type,
+      final int version,
+      final Ident ident,
+      final Object... args) {
 
     logger.debug(buildLogLine(type, version, ident, args));
   }
@@ -119,8 +120,12 @@ public class LoggingSupport {
    *
    * @see LoggingSupport#debug for parameter descriptions.
    */
-  public static void info(final Logger logger, final String type, final int version,
-                          final Ident ident, final Object... args) {
+  public static void info(
+      final Logger logger,
+      final String type,
+      final int version,
+      final Ident ident,
+      final Object... args) {
 
     logger.info(buildLogLine(type, version, ident, args));
   }
@@ -130,8 +135,12 @@ public class LoggingSupport {
    *
    * @see LoggingSupport#debug for parameter descriptions.
    */
-  public static void warn(final Logger logger, final String type, final int version,
-                          final Ident ident, final Object... args) {
+  public static void warn(
+      final Logger logger,
+      final String type,
+      final int version,
+      final Ident ident,
+      final Object... args) {
 
     logger.warn(buildLogLine(type, version, ident, args));
   }
@@ -141,14 +150,18 @@ public class LoggingSupport {
    *
    * @see LoggingSupport#debug for parameter descriptions.
    */
-  public static void error(final Logger logger, final String type, final int version,
-                           final Ident ident, final Object... args) {
+  public static void error(
+      final Logger logger,
+      final String type,
+      final int version,
+      final Ident ident,
+      final Object... args) {
 
     logger.error(buildLogLine(type, version, ident, args));
   }
 
-  protected static String buildLogLine(final String type, final int version, final Ident ident,
-                                       final Object... args) {
+  protected static String buildLogLine(
+      final String type, final int version, final Ident ident, final Object... args) {
     final StringBuilder line = new StringBuilder();
     line.append(LoggingSupport.rid.getAndIncrement()).append(' ');
 

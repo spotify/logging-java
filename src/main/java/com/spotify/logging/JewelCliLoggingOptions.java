@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,12 +47,16 @@ public interface JewelCliLoggingOptions {
   @Option(longName = "syslog", description = "Log to syslog in addition to stderr")
   boolean syslog();
 
-  @Option(longName = "syslogHost", defaultValue = "",
-          description = "Log to syslog at specified host in addition to stderr")
+  @Option(
+      longName = "syslogHost",
+      defaultValue = "",
+      description = "Log to syslog at specified host in addition to stderr")
   String syslogHost();
 
-  @Option(longName = "syslogPort", defaultValue = "-1",
-          description = "Log to syslog at specified port in addition to stderr")
+  @Option(
+      longName = "syslogPort",
+      defaultValue = "-1",
+      description = "Log to syslog at specified port in addition to stderr")
   int syslogPort();
 
   @Option(longName = "trace", description = "Set log level to TRACE")
@@ -70,12 +74,15 @@ public interface JewelCliLoggingOptions {
   @Option(longName = "error", description = "Set log level to ERROR")
   boolean error();
 
-  @Option(longName = "ident", description = "Set ident",
-          defaultValue = LoggingConfigurator.DEFAULT_IDENT)
+  @Option(
+      longName = "ident",
+      description = "Set ident",
+      defaultValue = LoggingConfigurator.DEFAULT_IDENT)
   String ident();
 
-  @Option(longName = "logconfig",
-          description = "Set log configuration according to a logback configuration file",
-          defaultValue = "")
+  @Option(
+      longName = "logconfig",
+      description = "Set log configuration according to a logback configuration file",
+      defaultValue = "")
   String logFileName();
 }
