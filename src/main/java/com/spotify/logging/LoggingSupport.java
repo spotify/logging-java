@@ -37,6 +37,7 @@
 package com.spotify.logging;
 
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 
 /** Utility for emitting log messages in the Spotify log format. */
@@ -109,7 +110,7 @@ public class LoggingSupport {
       final Logger logger,
       final String type,
       final int version,
-      final Ident ident,
+      final @Nullable Ident ident,
       final Object... args) {
 
     logger.debug(buildLogLine(type, version, ident, args));
@@ -124,7 +125,7 @@ public class LoggingSupport {
       final Logger logger,
       final String type,
       final int version,
-      final Ident ident,
+      final @Nullable Ident ident,
       final Object... args) {
 
     logger.info(buildLogLine(type, version, ident, args));
@@ -139,7 +140,7 @@ public class LoggingSupport {
       final Logger logger,
       final String type,
       final int version,
-      final Ident ident,
+      final @Nullable Ident ident,
       final Object... args) {
 
     logger.warn(buildLogLine(type, version, ident, args));
@@ -154,14 +155,14 @@ public class LoggingSupport {
       final Logger logger,
       final String type,
       final int version,
-      final Ident ident,
+      final @Nullable Ident ident,
       final Object... args) {
 
     logger.error(buildLogLine(type, version, ident, args));
   }
 
   protected static String buildLogLine(
-      final String type, final int version, final Ident ident, final Object... args) {
+      final String type, final int version, @Nullable final Ident ident, final Object... args) {
     final StringBuilder line = new StringBuilder();
     line.append(LoggingSupport.rid.getAndIncrement()).append(' ');
 
@@ -182,7 +183,7 @@ public class LoggingSupport {
     return line.toString();
   }
 
-  protected static void appendEscaped(final Object o, final StringBuilder out) {
+  protected static void appendEscaped(final @Nullable Object o, final StringBuilder out) {
     if (o == null) {
       return;
     }

@@ -23,7 +23,7 @@ package com.spotify.logging.logback;
 import static com.spotify.logging.logback.SpotifyInternalAppender.getMyPid;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import ch.qos.logback.classic.Logger;
 import com.spotify.logging.LoggingConfigurator;

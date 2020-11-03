@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>logging</artifactId>
@@ -93,10 +95,11 @@
       <version>4.11</version>
     </dependency>
 
+    <!-- Annotations-->
     <dependency>
-      <groupId>com.intellij</groupId>
-      <artifactId>annotations</artifactId>
-      <version>9.0.4</version>
+      <groupId>io.norberg</groupId>
+      <artifactId>some</artifactId>
+      <version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
 
@@ -164,6 +167,25 @@
           <execution>
             <goals>
               <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.1.4</version>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <failOnError>true</failOnError>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>

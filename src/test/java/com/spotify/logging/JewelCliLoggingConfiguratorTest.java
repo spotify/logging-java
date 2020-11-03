@@ -38,19 +38,28 @@ package com.spotify.logging;
 
 import static org.mockito.Mockito.when;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 
-/** */
+@RunWith(MockitoJUnitRunner.class)
 public class JewelCliLoggingConfiguratorTest {
+
+  @Mock private JewelCliLoggingOptions mockOptions;
+
+  @Before
+  public void setUp() {
+    when(mockOptions.ident()).thenReturn("test");
+    when(mockOptions.syslogHost()).thenReturn("");
+  }
 
   @Test
   public void syslog() {
-    final JewelCliLoggingOptions mockOptions = Mockito.mock(JewelCliLoggingOptions.class);
     when(mockOptions.syslog()).thenReturn(true);
     when(mockOptions.logFileName()).thenReturn("");
-    when(mockOptions.ident()).thenReturn("test");
     JewelCliLoggingConfigurator.configure(mockOptions);
 
     final org.slf4j.Logger logger = LoggerFactory.getLogger(JewelCliLoggingConfiguratorTest.class);
@@ -59,10 +68,8 @@ public class JewelCliLoggingConfiguratorTest {
 
   @Test
   public void threadlog() throws InterruptedException {
-    final JewelCliLoggingOptions mockOptions = Mockito.mock(JewelCliLoggingOptions.class);
     when(mockOptions.syslog()).thenReturn(false);
     when(mockOptions.logFileName()).thenReturn("logback_test.xml");
-    when(mockOptions.ident()).thenReturn("test");
     JewelCliLoggingConfigurator.configure(mockOptions);
 
     final org.slf4j.Logger logger = LoggerFactory.getLogger(JewelCliLoggingConfiguratorTest.class);
@@ -74,10 +81,8 @@ public class JewelCliLoggingConfiguratorTest {
 
   @Test
   public void nestedExceptionTest() throws Exception {
-    final JewelCliLoggingOptions mockOptions = Mockito.mock(JewelCliLoggingOptions.class);
     when(mockOptions.syslog()).thenReturn(true);
     when(mockOptions.logFileName()).thenReturn("");
-    when(mockOptions.ident()).thenReturn("test");
     JewelCliLoggingConfigurator.configure(mockOptions);
 
     final org.slf4j.Logger logger = LoggerFactory.getLogger(JewelCliLoggingConfiguratorTest.class);

@@ -45,14 +45,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /** A {@link SyslogStartConverter} with millisecond timestamp precision. */
 public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConverter {
 
   private long lastTimestamp = -1;
-  private String timestampStr = null;
-  private SimpleDateFormat simpleFormat;
-  private String localHostName;
+  private @Nullable String timestampStr = null;
+  // TODO: use java.time.format
+  private @Nullable SimpleDateFormat simpleFormat;
+  private @Nullable String localHostName;
   private int facility;
 
   private static final String os = System.getProperty("os.name");
@@ -72,12 +74,8 @@ public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConvert
         Optional.ofNullable(getContext().getProperty("hostname")).orElse(getLocalHostname());
 
     try {
-      // ASL doesn't handle milliseconds.
-      if (os.equals("Mac OS X")) {
-        simpleFormat = new SimpleDateFormat("MMM dd HH:mm:ss", new DateFormatSymbols(Locale.US));
-      } else {
-        simpleFormat =
-            new SimpleDateFormat("MMM dd HH:mm:ss.SSS", new DateFormatSymbols(Locale.US));
+      synchronized (this) {
+        simpleFormat = createDateFormat();
       }
     } catch (IllegalArgumentException e) {
       addError("Could not instantiate SimpleDateFormat", e);
@@ -105,13 +103,23 @@ public class MillisecondPrecisionSyslogStartConverter extends SyslogStartConvert
     return sb.toString();
   }
 
-  String computeTimeStampString(final long now) {
+  private String computeTimeStampString(final long now) {
     synchronized (this) {
       if (now != lastTimestamp) {
+        assert simpleFormat != null;
         lastTimestamp = now;
         timestampStr = simpleFormat.format(new Date(now));
       }
       return timestampStr;
+    }
+  }
+
+  private static SimpleDateFormat createDateFormat() {
+    // ASL doesn't handle milliseconds.
+    if (os.equals("Mac OS X")) {
+      return new SimpleDateFormat("MMM dd HH:mm:ss", new DateFormatSymbols(Locale.US));
+    } else {
+      return new SimpleDateFormat("MMM dd HH:mm:ss.SSS", new DateFormatSymbols(Locale.US));
     }
   }
 }

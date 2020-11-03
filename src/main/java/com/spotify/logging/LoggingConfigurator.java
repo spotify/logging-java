@@ -56,6 +56,7 @@ import com.spotify.logging.logback.MillisecondPrecisionSyslogAppender;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
+import javax.annotation.Nullable;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +92,7 @@ public class LoggingConfigurator {
   public static final String SPOTIFY_SYSLOG_PORT = "SPOTIFY_SYSLOG_PORT";
   private static final String USE_JSON_LOGGING = "USE_JSON_LOGGING";
 
+  @SuppressWarnings("unused")
   public enum Level {
     OFF(ch.qos.logback.classic.Level.OFF),
     ERROR(ch.qos.logback.classic.Level.ERROR),
@@ -189,7 +191,7 @@ public class LoggingConfigurator {
     // Call configureSyslogDefaults if the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT env var is
     // set. If this causes a problem, we could introduce a configureConsoleDefaults method which
     // users could call instead to avoid this behavior.
-    final String syslogHost = getSyslogHost();
+    final @Nullable String syslogHost = getSyslogHost();
     final int syslogPort = getSyslogPort();
     if (syslogHost != null || syslogPort != -1) {
       configureSyslogDefaults(ident, level, syslogHost, syslogPort, replaceNewLines);
@@ -229,7 +231,7 @@ public class LoggingConfigurator {
     encoder.addProvider(new ArgumentsJsonProvider());
     encoder.start();
 
-    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
+    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<>();
     appender.setTarget("System.out");
     appender.setName("stdout");
     appender.setEncoder(encoder);
@@ -262,7 +264,7 @@ public class LoggingConfigurator {
       final String ident, final Level level, final ReplaceNewLines replaceNewLines) {
     final String syslogHost = getenv(SPOTIFY_SYSLOG_HOST);
     final String port = getenv(SPOTIFY_SYSLOG_PORT);
-    final int syslogPort = port == null ? -1 : Integer.valueOf(port);
+    final int syslogPort = port == null ? -1 : Integer.parseInt(port);
     configureSyslogDefaults(ident, level, syslogHost, syslogPort, replaceNewLines);
   }
 
@@ -278,7 +280,7 @@ public class LoggingConfigurator {
   public static void configureSyslogDefaults(
       final String ident,
       final Level level,
-      final String host,
+      final @Nullable String host,
       final int port,
       final ReplaceNewLines replaceNewLines) {
     configureSyslogDefaults(ident, level, host, port, Logger.ROOT_LOGGER_NAME, replaceNewLines);
@@ -297,7 +299,7 @@ public class LoggingConfigurator {
   public static void configureSyslogDefaults(
       final String ident,
       final Level level,
-      final String host,
+      final @Nullable String host,
       final int port,
       final String loggerName,
       final ReplaceNewLines replaceNewLines) {
@@ -374,7 +376,7 @@ public class LoggingConfigurator {
     encoder.start();
 
     // Setup stderr appender
-    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<ILoggingEvent>();
+    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<>();
     appender.setTarget("System.err");
     appender.setName("stderr");
     appender.setEncoder(encoder);
@@ -395,7 +397,7 @@ public class LoggingConfigurator {
    */
   static Appender<ILoggingEvent> getSyslogAppender(
       final LoggerContext context,
-      final String host,
+      final @Nullable String host,
       final int port,
       final ReplaceNewLines replaceNewLines) {
     final String h = (host == null || host.isEmpty()) ? "localhost" : host;
@@ -430,6 +432,7 @@ public class LoggingConfigurator {
    *
    * @deprecated Don't use, see docs.
    */
+  @Deprecated
   static void configure(final JewelCliLoggingOptions opts) {
     // Use logback config file to setup logging if specified, discarding any other logging options.
     if (!opts.logFileName().isEmpty()) {
@@ -448,7 +451,7 @@ public class LoggingConfigurator {
     // See if syslog host was specified via command line or environment variable.
     // The command line value takes precedence, which defaults to an empty string.
     String syslogHost = opts.syslogHost();
-    if (syslogHost == null || syslogHost.isEmpty()) {
+    if (syslogHost.isEmpty()) {
       syslogHost = getSyslogHost();
     }
 
@@ -561,7 +564,7 @@ public class LoggingConfigurator {
     return pid;
   }
 
-  private static String getSyslogHost() {
+  private static @Nullable String getSyslogHost() {
     final String host = System.getenv().getOrDefault(SPOTIFY_SYSLOG_HOST, "");
     return host.isEmpty() ? null : host;
   }
@@ -571,7 +574,7 @@ public class LoggingConfigurator {
     return port.isEmpty() ? -1 : Integer.parseInt(port);
   }
 
-  private static String getSpotifyHostname() {
+  private static @Nullable String getSpotifyHostname() {
     final String hostname = System.getenv().getOrDefault(SPOTIFY_HOSTNAME, "");
     return hostname.isEmpty() ? null : hostname;
   }
