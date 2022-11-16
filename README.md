@@ -1,20 +1,16 @@
-spotify-logging
+# spotify-logging
 ===============
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.spotify/logging/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.spotify/logging) [![Build Status](https://img.shields.io/circleci/project/github/spotify/logging-java)](https://circleci.com/gh/spotify/logging-java)
-
 
 A small set of utility classes for setting up logback and a helper to
 create logging messages suitable for the Spotify internal log parsing
 infrastructure.
 
-
-# Logstash Logback Encoder
-
+## Logstash Logback Encoder
 
 The [logstash-logback-encoder](https://github.com/logstash/logstash-logback-encoder) is used to log
 in the JSON format.
-
 
 The primary motivation is provide any Java service running inside a container with Kubernetes (k8s) or Helios a way
 to log in a structured format.
@@ -29,8 +25,17 @@ The general flow for a log message running on k8s is as follows.
 Instead of writing directly to a given logging service we chose this approach to more easily switch between
 providers without needing to modify as little code as possible.
 
-
 ## License
 
 This software is released under the Apache License 2.0. More information
 in the file LICENSE distributed with this project.
+
+## Ownership
+
+The Weaver squad is currently owning this project internally.
+We are currently in the evaluating process of the ownership of this and other OSS Java libraries.
+The ownership takes into account **ONLY** security maintenance.
+
+This repo is also co-owned by other people:
+
+* [mattnworb](https://github.com/mattnworb)
