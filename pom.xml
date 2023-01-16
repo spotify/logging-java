@@ -110,9 +110,9 @@
       <version>0.6</version>
     </dependency>
     <dependency>
-      <groupId>com.getsentry.raven</groupId>
-      <artifactId>raven-logback</artifactId>
-      <version>7.8.2</version>
+      <groupId>io.sentry</groupId>
+      <artifactId>sentry-logback</artifactId>
+      <version>6.11.0</version>
     </dependency>
 
     <!--test scope-->
