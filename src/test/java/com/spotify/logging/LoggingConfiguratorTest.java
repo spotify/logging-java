@@ -36,6 +36,7 @@
 
 package com.spotify.logging;
 
+import static com.spotify.logging.LoggingConfigurator.addSentryAppender;
 import static com.spotify.logging.LoggingConfigurator.getSyslogAppender;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,8 +48,10 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.status.Status;
 import com.google.common.collect.FluentIterable;
 import com.spotify.logging.logback.CustomLogstashEncoder;
+import io.sentry.logback.SentryAppender;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
 import org.junit.Rule;
 import org.junit.Test;
@@ -105,6 +108,31 @@ public class LoggingConfiguratorTest {
     assertEquals(
         "%property{ident}[%property{pid}]: %replace(%msg){'[\\r\\n]', ''}",
         appender.getSuffixPattern());
+  }
+
+  @Test
+  public void testGetSentryAppenderNoErrorsWithDsnOption() {
+    SentryAppender sentryAppender =
+        addSentryAppender(
+            "https://examplePublicKey@o0.ingest.sentry.io/0", LoggingConfigurator.Level.ERROR);
+
+    assertEquals(
+        0,
+        sentryAppender.getContext().getStatusManager().getCopyOfStatusList().stream()
+            .filter(
+                status -> {
+                  if (status.getLevel() == Status.WARN
+                      && status
+                          .getMessage()
+                          .contains(
+                              "Failed to init Sentry during appender initialization: DSN is "
+                                  + "required. Use empty string to disable SDK.")) {
+                    return true;
+                  }
+
+                  return false;
+                })
+            .count());
   }
 
   private String getLoggingContextHostnameProperty() {
