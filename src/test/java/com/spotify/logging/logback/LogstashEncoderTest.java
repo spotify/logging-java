@@ -26,10 +26,11 @@ import static org.junit.Assert.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.spotify.logging.LoggingConfigurator;
 import com.spotify.logging.LoggingConfigurator.Level;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import net.logstash.logback.encoder.LogstashEncoder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,8 +53,8 @@ public class LogstashEncoderTest {
         "foo={} bar={} list={} map={} thing={}",
         value("foo", 17),
         value("bar", "quux"),
-        value("list", ImmutableList.of(1, 2)),
-        value("map", ImmutableMap.of("a", 3, "b", 4)),
+        value("list", Arrays.asList(1, 2)),
+        value("map", mapOf("a", 3, "b", 4)),
         value("thing", new Thing(5, "6")));
     final String log = systemOutRule.getLog();
     final JsonNode parsedMessage = mapper.readTree(log);
@@ -65,6 +66,14 @@ public class LogstashEncoderTest {
     assertEquals(mapper.createArrayNode().add(1).add(2), parsedMessage.get("list"));
     assertEquals(mapper.createObjectNode().put("a", 3).put("b", 4), parsedMessage.get("map"));
     assertEquals(mapper.createObjectNode().put("v1", 5).put("v2", "6"), parsedMessage.get("thing"));
+  }
+
+  private <V> Map<String, V> mapOf(
+      final String keyA, final V valueA, final String keyB, final V valueB) {
+    final Map<String, V> map = new HashMap<>();
+    map.put(keyA, valueA);
+    map.put(keyB, valueB);
+    return map;
   }
 
   public static class Thing {

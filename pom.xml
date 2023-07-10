@@ -46,6 +46,18 @@
     </developer>
   </developers>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>2.15.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <!--compile scope-->
     <dependency>
@@ -66,7 +78,7 @@
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>
-      <version>4.11</version>
+      <version>7.4</version>
     </dependency>
 
     <!-- Annotations-->
@@ -81,7 +93,7 @@
     <dependency>
       <groupId>uk.co.flamingpenguin.jewelcli</groupId>
       <artifactId>jewelcli</artifactId>
-      <version>0.6</version>
+      <version>0.59</version>
     </dependency>
     <dependency>
       <groupId>io.sentry</groupId>
@@ -111,13 +123,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.12.7.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>17.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
