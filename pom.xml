@@ -93,7 +93,7 @@
     <dependency>
       <groupId>uk.co.flamingpenguin.jewelcli</groupId>
       <artifactId>jewelcli</artifactId>
-      <version>0.6</version>
+      <version>0.59</version>
     </dependency>
     <dependency>
       <groupId>io.sentry</groupId>
