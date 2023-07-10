@@ -49,7 +49,6 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.status.Status;
-import com.google.common.collect.FluentIterable;
 import com.spotify.logging.logback.CustomLogstashEncoder;
 import io.sentry.logback.SentryAppender;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
@@ -214,9 +213,9 @@ public class LoggingConfiguratorTest {
     final CustomLogstashEncoder encoder = (CustomLogstashEncoder) stdout.getEncoder();
     assertEquals(
         1,
-        FluentIterable.from(encoder.getProviders().getProviders())
-            .filter(ArgumentsJsonProvider.class)
-            .size());
+        encoder.getProviders().getProviders().stream()
+            .filter(ArgumentsJsonProvider.class::isInstance)
+            .count());
   }
 
   private void assertDefault(final String ident, final Level level) {

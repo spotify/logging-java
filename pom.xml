@@ -125,12 +125,6 @@
       <artifactId>jackson-databind</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>17.0</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
