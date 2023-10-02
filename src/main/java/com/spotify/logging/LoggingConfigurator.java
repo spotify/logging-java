@@ -330,19 +330,35 @@ public class LoggingConfigurator {
   }
 
   /**
-   * Add a sentry appender.
+   * Add a sentry appender. This method is deprecated in favor of {@link #addSentryAppender(String,
+   * Level, SentryOptions)}.
    *
    * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
    * @param logLevelThreshold the threshold for log events to be sent to sentry.
    * @return the configured sentry appender.
+   * @deprecated Use {@link #addSentryAppender(String, Level, SentryOptions)}.
    */
+  @Deprecated
   public static SentryAppender addSentryAppender(final String dsn, Level logLevelThreshold) {
+    return addSentryAppender(dsn, logLevelThreshold, new SentryOptions());
+  }
+
+  /**
+   * Add a sentry appender.
+   *
+   * @param dsn the sentry dsn to use (as produced by the sentry webinterface).
+   * @param logLevelThreshold the threshold for log events to be sent to sentry.
+   * @param sentryOptions Options to pass to the sentry appender
+   * @return the configured sentry appender.
+   */
+  public static SentryAppender addSentryAppender(
+      final String dsn, Level logLevelThreshold, SentryOptions sentryOptions) {
+
     final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     final LoggerContext context = rootLogger.getLoggerContext();
 
     SentryAppender appender = new SentryAppender();
-    SentryOptions sentryOptions = new SentryOptions();
     sentryOptions.setDsn(dsn);
     appender.setOptions(sentryOptions);
 
