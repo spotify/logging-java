@@ -37,7 +37,6 @@
 package com.spotify.logging;
 
 import static ch.qos.logback.classic.Level.OFF;
-import static ch.qos.logback.classic.Level.WARN;
 import static java.lang.System.getenv;
 
 import ch.qos.logback.classic.Logger;
