@@ -366,6 +366,7 @@ public class LoggingConfigurator {
     ThresholdFilter levelFilter = new ThresholdFilter();
     levelFilter.setLevel(logLevelThreshold.logbackLevel.toString());
     levelFilter.start();
+    appender.setMinimumEventLevel(logLevelThreshold.logbackLevel);
     appender.addFilter(levelFilter);
 
     appender.start();
