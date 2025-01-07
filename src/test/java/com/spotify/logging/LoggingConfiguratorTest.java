@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -49,6 +50,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.status.Status;
+import com.spotify.logging.LoggingConfigurator.ReplaceNewLines;
 import com.spotify.logging.logback.CustomLogstashEncoder;
 import io.sentry.logback.SentryAppender;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
@@ -66,26 +68,19 @@ public class LoggingConfiguratorTest {
     final LoggerContext context = new LoggerContext();
 
     SyslogAppender appender =
-        (SyslogAppender)
-            getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+        (SyslogAppender) getSyslogAppender(context, "", -1, ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender =
-        (SyslogAppender)
-            getSyslogAppender(context, null, -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender = (SyslogAppender) getSyslogAppender(context, null, -1, ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender =
-        (SyslogAppender)
-            getSyslogAppender(context, "host", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender = (SyslogAppender) getSyslogAppender(context, "host", -1, ReplaceNewLines.OFF);
     assertEquals("wrong host", "host", appender.getSyslogHost());
     assertEquals("wrong port", 514, appender.getPort());
 
-    appender =
-        (SyslogAppender)
-            getSyslogAppender(context, null, 999, LoggingConfigurator.ReplaceNewLines.OFF);
+    appender = (SyslogAppender) getSyslogAppender(context, null, 999, ReplaceNewLines.OFF);
     assertEquals("wrong host", "localhost", appender.getSyslogHost());
     assertEquals("wrong port", 999, appender.getPort());
   }
@@ -95,15 +90,13 @@ public class LoggingConfiguratorTest {
     final LoggerContext context = new LoggerContext();
 
     SyslogAppender appender =
-        (SyslogAppender)
-            getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.OFF);
+        (SyslogAppender) getSyslogAppender(context, "", -1, ReplaceNewLines.OFF);
     assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
 
     appender = (SyslogAppender) getSyslogAppender(context, "", -1, null);
     assertEquals("%property{ident}[%property{pid}]: %msg", appender.getSuffixPattern());
 
-    appender =
-        (SyslogAppender) getSyslogAppender(context, "", -1, LoggingConfigurator.ReplaceNewLines.ON);
+    appender = (SyslogAppender) getSyslogAppender(context, "", -1, ReplaceNewLines.ON);
     assertEquals(
         "%property{ident}[%property{pid}]: %replace(%msg){'[\\r\\n]', ''}",
         appender.getSuffixPattern());
@@ -170,6 +163,29 @@ public class LoggingConfiguratorTest {
   public void shouldConfigureLogstashEncoderWithLevel() {
     LoggingConfigurator.configureLogstashEncoderDefaults(LoggingConfigurator.Level.DEBUG);
     assertLogstashEncoder(Level.DEBUG);
+  }
+
+  @Test
+  public void shouldConfigureLogstashEncoderWithLevelAndAsyncAppender() {
+    // Given
+    final AsyncAppender asyncAppender = new AsyncAppender();
+
+    // When
+    LoggingConfigurator.configureLogstashEncoderDefaults(
+        LoggingConfigurator.Level.DEBUG, asyncAppender);
+
+    // Then
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final ConsoleAppender<?> stdout = (ConsoleAppender<?>) asyncAppender.getAppender("stdout");
+    final CustomLogstashEncoder encoder = (CustomLogstashEncoder) stdout.getEncoder();
+    assertTrue(stdout.getEncoder() instanceof CustomLogstashEncoder);
+    assertEquals(Level.DEBUG, rootLogger.getLevel());
+    assertEquals(
+        1,
+        encoder.getProviders().getProviders().stream()
+            .filter(ArgumentsJsonProvider.class::isInstance)
+            .count());
+    assertTrue(asyncAppender.isStarted());
   }
 
   @Test
