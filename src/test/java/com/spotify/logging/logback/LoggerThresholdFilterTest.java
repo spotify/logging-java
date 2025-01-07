@@ -157,8 +157,7 @@ public class LoggerThresholdFilterTest {
           actual = andFilterReplies(actual, nextReply);
         }
 
-        assertEquals(
-            String.format("Logger: %s, Level: %s", logger, level.toString()), expected, actual);
+        assertEquals("Logger: %s, Level: %s".formatted(logger, level.toString()), expected, actual);
       }
     }
   }
