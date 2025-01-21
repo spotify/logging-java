@@ -1,3 +1,7 @@
+# DEPRECATION NOTICE
+
+This project is no longer actively maintained, and PRs will no longer be accepted.
+
 # spotify-logging
 ===============
 
