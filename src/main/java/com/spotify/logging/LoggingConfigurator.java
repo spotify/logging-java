@@ -189,6 +189,24 @@ public class LoggingConfigurator {
    */
   public static void configureDefaults(
       final String ident, final Level level, final ReplaceNewLines replaceNewLines) {
+    configureDefaults(ident, level, replaceNewLines, false);
+  }
+
+  /**
+   * Configure logging with default behaviour and log to stderr. If the SPOTIFY_SYSLOG_HOST or
+   * SPOTIFY_SYSLOG_PORT environment variable is defined, the syslog appender will be used,
+   * otherwise console appender will be.
+   *
+   * @param ident The logging identity.
+   * @param level logging level to use.
+   * @param replaceNewLines configures new lines replacement in the messages
+   * @param appendMarkers append markers to the log message
+   */
+  public static void configureDefaults(
+      final String ident,
+      final Level level,
+      final ReplaceNewLines replaceNewLines,
+      final boolean appendMarkers) {
     // Call configureSyslogDefaults if the SPOTIFY_SYSLOG_HOST or SPOTIFY_SYSLOG_PORT env var is
     // set. If this causes a problem, we could introduce a configureConsoleDefaults method which
     // users could call instead to avoid this behavior.
@@ -205,7 +223,7 @@ public class LoggingConfigurator {
     final LoggerContext context = setupLoggerContext(rootLogger, ident);
 
     // Setup stderr output
-    rootLogger.addAppender(getStdErrAppender(context, replaceNewLines));
+    rootLogger.addAppender(getStdErrAppender(context, replaceNewLines, appendMarkers));
 
     // Setup logging level
     rootLogger.setLevel(level.logbackLevel);
@@ -380,16 +398,20 @@ public class LoggingConfigurator {
    * Create a stderr appender.
    *
    * @param context The logger context to use.
+   * @param appendMarkers append markers to the log message
    * @return An appender writing to stderr.
    */
   private static Appender<ILoggingEvent> getStdErrAppender(
-      final LoggerContext context, final ReplaceNewLines replaceNewLines) {
+      final LoggerContext context,
+      final ReplaceNewLines replaceNewLines,
+      final boolean appendMarkers) {
 
     // Setup format
     final PatternLayoutEncoder encoder = new PatternLayoutEncoder();
     encoder.setContext(context);
     encoder.setPattern(
         "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: "
+            + (appendMarkers ? "[%marker] " : "")
             + ReplaceNewLines.getMsgPattern(replaceNewLines)
             + "%n");
     encoder.setCharset(StandardCharsets.UTF_8);
@@ -487,7 +509,7 @@ public class LoggingConfigurator {
       rootLogger.addAppender(
           getSyslogAppender(context, syslogHost, syslogPort, ReplaceNewLines.OFF));
     } else {
-      rootLogger.addAppender(getStdErrAppender(context, ReplaceNewLines.OFF));
+      rootLogger.addAppender(getStdErrAppender(context, ReplaceNewLines.OFF, false));
     }
 
     // Setup default logging level

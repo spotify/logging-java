@@ -49,6 +49,7 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.net.SyslogAppender;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.status.Status;
+import com.spotify.logging.LoggingConfigurator.ReplaceNewLines;
 import com.spotify.logging.logback.CustomLogstashEncoder;
 import io.sentry.logback.SentryAppender;
 import net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider;
@@ -176,6 +177,30 @@ public class LoggingConfiguratorTest {
   public void shouldConfigureDefaultWithIdentAndLevelWhenSyslogEnvVarIsNotSet() {
     LoggingConfigurator.configureDefaults("some-ident", LoggingConfigurator.Level.DEBUG);
     assertDefault("some-ident", Level.DEBUG);
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithMarkerSupport() {
+    LoggingConfigurator.configureDefaults(
+        "some-ident", LoggingConfigurator.Level.DEBUG, ReplaceNewLines.OFF, true);
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final ConsoleAppender<?> stderr = (ConsoleAppender<?>) rootLogger.getAppender("stderr");
+    assertTrue(stderr.getEncoder() instanceof PatternLayoutEncoder);
+    assertEquals(
+        "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: [%marker] %msg%n",
+        ((PatternLayoutEncoder) stderr.getEncoder()).getPattern());
+  }
+
+  @Test
+  public void shouldConfigureDefaultWithoutMarkerSupport() {
+    LoggingConfigurator.configureDefaults(
+        "some-ident", LoggingConfigurator.Level.DEBUG, ReplaceNewLines.OFF, false);
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+    final ConsoleAppender<?> stderr = (ConsoleAppender<?>) rootLogger.getAppender("stderr");
+    assertTrue(stderr.getEncoder() instanceof PatternLayoutEncoder);
+    assertEquals(
+        "%date{HH:mm:ss.SSS} %property{ident}[%property{pid}]: %-5level [%thread] %logger{0}: %msg%n",
+        ((PatternLayoutEncoder) stderr.getEncoder()).getPattern());
   }
 
   @Test
