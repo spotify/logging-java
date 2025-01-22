@@ -42,7 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,7 +68,6 @@ public class JewelCliLoggingConfiguratorTest {
 
   @Test
   public void threadlog() throws InterruptedException {
-    when(mockOptions.syslog()).thenReturn(false);
     when(mockOptions.logFileName()).thenReturn("logback_test.xml");
     JewelCliLoggingConfigurator.configure(mockOptions);
 

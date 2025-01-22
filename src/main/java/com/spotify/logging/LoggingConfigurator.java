@@ -39,6 +39,7 @@ package com.spotify.logging;
 import static ch.qos.logback.classic.Level.OFF;
 import static java.lang.System.getenv;
 
+import ch.qos.logback.classic.AsyncAppender;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
@@ -222,6 +223,19 @@ public class LoggingConfigurator {
    * a Docker container will capture these logs for further processing.
    */
   public static void configureLogstashEncoderDefaults(final Level level) {
+    configureLogstashEncoderDefaults(level, null);
+  }
+
+  /**
+   * Configure logging with the LogstashEncoder library.
+   * (https://github.com/logstash/logstash-logback-encoder)
+   *
+   * <p>The supplied {@link AsyncAppender} will wrap an appender that is configured to send the log
+   * messages to stdout. It is the responsibility of the caller to stop the {@link AsyncAppender} to
+   * properly flush the logging events from its queue.
+   */
+  public static void configureLogstashEncoderDefaults(
+      final Level level, @Nullable final AsyncAppender asyncAppender) {
     final Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     final LoggerContext context = rootLogger.getLoggerContext();
 
@@ -232,14 +246,22 @@ public class LoggingConfigurator {
     encoder.addProvider(new ArgumentsJsonProvider());
     encoder.start();
 
-    final ConsoleAppender<ILoggingEvent> appender = new ConsoleAppender<>();
-    appender.setTarget("System.out");
-    appender.setName("stdout");
-    appender.setEncoder(encoder);
-    appender.setContext(context);
-    appender.start();
+    final ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
+    consoleAppender.setTarget("System.out");
+    consoleAppender.setName("stdout");
+    consoleAppender.setEncoder(encoder);
+    consoleAppender.setContext(context);
+    consoleAppender.start();
 
-    rootLogger.addAppender(appender);
+    if (asyncAppender != null) {
+      asyncAppender.setContext(context);
+      asyncAppender.addAppender(consoleAppender);
+      asyncAppender.start();
+      rootLogger.addAppender(asyncAppender);
+    } else {
+      rootLogger.addAppender(consoleAppender);
+    }
+
     rootLogger.setLevel(level.logbackLevel);
 
     UncaughtExceptionLogger.setDefaultUncaughtExceptionHandler();

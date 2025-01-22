@@ -58,7 +58,7 @@ public class SpotifyInternalAppender extends MillisecondPrecisionSyslogAppender 
 
     // our internal syslog-ng configuration splits logs up based on service name, and expects the
     // format below.
-    String serviceAndPid = String.format("%s[%s]", serviceName, getMyPid());
+    String serviceAndPid = "%s[%s]".formatted(serviceName, getMyPid());
     setSuffixPattern(
         serviceAndPid
             + ": "
